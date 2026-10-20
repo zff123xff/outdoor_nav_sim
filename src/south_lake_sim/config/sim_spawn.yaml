@@ -1,0 +1,18 @@
+# Gazebo 初始位置、底盘限速和键盘速度；修改后重启 launch_sim.sh，无需重编译。
+# 世界坐标与当前仿真地图的 ENU 对齐：x 向东、y 向北、z 向上，单位米。
+# yaw 单位弧度：0 朝东，1.5708 朝北，3.1416 朝西，-1.5708 朝南。
+spawn:
+  x: 10.0
+  y: -6.0
+  z: auto  # Go2-W 默认 0.03417389；旧 Go2 默认 0.4；也可填数值。
+  yaw: 0.0
+
+# 导航和键盘共用的底盘速度上限。
+drive:
+  max_linear_speed: 10.0   # m/s
+  max_angular_speed: 2.0  # rad/s
+
+# Gazebo 键盘按住按键时的目标速度，实际受上面的底盘上限限制。
+keyboard:
+  linear_speed: 2.0       # m/s
+  angular_speed: 1.0     # rad/s

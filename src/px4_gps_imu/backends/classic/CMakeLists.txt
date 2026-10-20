@@ -1,0 +1,7 @@
+find_package(gazebo_dev REQUIRED)
+find_package(gazebo_ros REQUIRED)
+add_library(px4_classic_sensors SHARED ../../src/px4_classic_sensors.cpp)
+target_include_directories(px4_classic_sensors PRIVATE ${GAZEBO_INCLUDE_DIRS})
+target_link_libraries(px4_classic_sensors px4_ecl ${GAZEBO_LIBRARIES})
+ament_target_dependencies(px4_classic_sensors gazebo_ros rclcpp sensor_msgs geometry_msgs nav_msgs)
+install(TARGETS px4_classic_sensors LIBRARY DESTINATION lib)

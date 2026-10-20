@@ -1,0 +1,51 @@
+controller_manager:
+  ros__parameters:
+    use_sim_time: true
+    update_rate: 250
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+    leg_position_controller:
+      type: position_controllers/JointGroupPositionController
+    diff_drive_controller:
+      type: diff_drive_controller/DiffDriveController
+leg_position_controller:
+  ros__parameters:
+    joints:
+    - FL_hip_joint
+    - FL_thigh_joint
+    - FL_calf_joint
+    - FR_hip_joint
+    - FR_thigh_joint
+    - FR_calf_joint
+    - RL_hip_joint
+    - RL_thigh_joint
+    - RL_calf_joint
+    - RR_hip_joint
+    - RR_thigh_joint
+    - RR_calf_joint
+diff_drive_controller:
+  ros__parameters:
+    use_sim_time: true
+    left_wheel_names:
+    - FL_foot_joint
+    - RL_foot_joint
+    right_wheel_names:
+    - FR_foot_joint
+    - RR_foot_joint
+    wheels_per_side: 2
+    wheel_radius: 0.086
+    wheel_separation: 0.3802
+    position_feedback: false
+    open_loop: false
+    enable_odom_tf: false
+    base_frame_id: robot/base_link
+    odom_frame_id: robot/odom
+    use_stamped_vel: false
+    cmd_vel_timeout: 0.3
+    publish_rate: 50.0
+    linear.x.has_velocity_limits: true
+    linear.x.max_velocity: 5.0
+    linear.x.min_velocity: -5.0
+    angular.z.has_velocity_limits: true
+    angular.z.max_velocity: 0.5
+    angular.z.min_velocity: -0.5

@@ -1,0 +1,2 @@
+PASS: xyz+intensity+timestamp, point_step=24 transformed correctly
+Malformed x-only cloud: Field y does not exist

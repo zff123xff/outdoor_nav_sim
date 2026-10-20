@@ -1,0 +1,16 @@
+# Colcon and runtime output
+/build/
+/install/
+/log/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.cache/
+.DS_Store
+
+# Local credentials and recorded sensor data
+.env
+.env.*
+*.bag
+*.db3
+*.mcap

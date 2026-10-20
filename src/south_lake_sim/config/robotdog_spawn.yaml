@@ -1,0 +1,13 @@
+# robotdog_nav Go2-W starts at world (0,0), heading east.
+# z uses this project's model origin (base_link), not Classic's body origin.
+spawn:
+  x: 0.0
+  y: 0.0
+  z: auto
+  yaw: 0.0
+drive:
+  max_linear_speed: 0.3
+  max_angular_speed: 0.5
+keyboard:
+  linear_speed: 0.3
+  angular_speed: 0.5

@@ -1,0 +1,57 @@
+# Sensor-only navigation pose; no Gazebo truth input.
+/**:
+  ros__parameters:
+    feature_extract_enable: false
+    point_filter_num: 1
+    max_iteration: 5
+    filter_size_surf: 0.1
+    filter_size_map: 0.1
+    output_map_leaf_size: 0.2
+    cube_side_length: 1000.0
+    runtime_pos_log_enable: false
+    map_file_path: /tmp/go2_map.pcd
+    common:
+      lid_topic: livox/lidar
+      imu_topic: livox/imu
+      imu_queue_depth: 2000
+      imu_max_gap: 0.02
+      time_sync_en: false
+      time_offset_lidar_to_imu: 0.0
+    preprocess:
+      lidar_type: 5
+      scan_line: 1
+      scan_rate: 10
+      timestamp_unit: 0
+      blind: 0.05
+    mapping:
+      acc_cov: 0.1
+      gyr_cov: 0.1
+      b_acc_cov: 0.0001
+      b_gyr_cov: 0.0001
+      fov_degree: 360.0
+      det_range: 30.0
+      extrinsic_est_en: false
+      # lidar origin (0.18,0,0.13) minus IMU origin (-0.02557,0,0.04232).
+      extrinsic_T:
+      - 0.20557
+      - 0.0
+      - 0.08768
+      extrinsic_R:
+      - 0.9510565162951535
+      - 0.0
+      - 0.3090169943749474
+      - 0.0
+      - 1.0
+      - 0.0
+      - -0.3090169943749474
+      - 0.0
+      - 0.9510565162951535
+    publish:
+      map_en: false
+      path_en: false
+      scan_publish_en: true
+      dense_publish_en: true
+      scan_bodyframe_pub_en: true
+    pcd_save:
+      pcd_save_en: false
+      interval: -1

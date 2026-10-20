@@ -1,0 +1,38 @@
+cmake_minimum_required(VERSION 3.16)
+project(px4_gps_imu)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+
+# All estimator sources are unmodified upstream files. No download at build time.
+file(GLOB ECL_EKF_SOURCES CONFIGURE_DEPENDS vendor/ecl/EKF/*.cpp)
+add_library(px4_ecl STATIC ${ECL_EKF_SOURCES}
+  vendor/ecl/geo/geo.cpp vendor/ecl/geo_lookup/geo_mag_declination.cpp)
+set_target_properties(px4_ecl PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_compile_definitions(px4_ecl PUBLIC ECL_STANDALONE)
+target_include_directories(px4_ecl PUBLIC vendor/ecl vendor/matrix include)
+target_compile_options(px4_ecl PRIVATE -fno-associative-math)
+
+add_executable(px4_ekf_node src/px4_ekf_node.cpp)
+target_link_libraries(px4_ekf_node px4_ecl)
+ament_target_dependencies(px4_ekf_node rclcpp sensor_msgs nav_msgs geometry_msgs std_msgs)
+
+add_subdirectory(backends/classic)
+
+if(BUILD_TESTING)
+  enable_testing()
+  add_executable(fusion_test test/fusion_test.cpp)
+  target_link_libraries(fusion_test px4_ecl)
+  add_test(NAME px4_fusion COMMAND fusion_test)
+  add_test(NAME launch_profiles COMMAND /usr/bin/python3 ${CMAKE_CURRENT_SOURCE_DIR}/test/launch_profiles_test.py ${CMAKE_CURRENT_SOURCE_DIR}/launch/go2_px4_sim.launch.py)
+endif()
+install(TARGETS px4_ekf_node DESTINATION lib/${PROJECT_NAME})
+install(DIRECTORY launch config DESTINATION share/${PROJECT_NAME})
+install(FILES README.md SOURCE.md vendor/ecl/LICENSE DESTINATION share/${PROJECT_NAME})
+ament_package()

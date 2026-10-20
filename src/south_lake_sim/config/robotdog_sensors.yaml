@@ -1,0 +1,12 @@
+# Reference MID360 configuration and wheel contacts for Gazebo Classic.
+lidar_min_range: 0.1
+lidar_max_range: 5.0
+lidar_resolution: 0.002
+lidar_noise_stddev: 0.01
+lidar_vertical_min: -0.12601277199
+lidar_vertical_max: 0.96377081345
+wheel_mu1: 0.6
+wheel_mu2: 0.6
+lidar_xyz: 0.25 0 0.13
+lidar_rpy: 0 0.4 0
+lidar_publish_rate: 10

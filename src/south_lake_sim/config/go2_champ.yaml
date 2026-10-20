@@ -1,0 +1,38 @@
+# 参数用途与覆盖关系：本文件配置 CHAMP 步态节点，不覆盖 FAST-LIO 或 PGO 的 YAML 参数。
+# go2_ign_launch.py 先加载本文件，再显式覆盖四个 gait 参数（后者优先）：
+#   max_linear_velocity_x ← gait_max_speed（launch 默认 1.2 m/s）
+#   max_angular_velocity_z ← gait_max_yaw_rate（launch 默认 0.5 rad/s）
+#   stance_duration ← gait_stance_duration（launch 默认 0.25 s）
+#   swing_height ← gait_swing_height（launch 默认 0.04 m）
+# 因此只修改下方这四项，无法改变使用该 launch 时的实际值；需要调整对应 launch 参数。
+# 路线实验进一步从 go2_perimeter_route.json 的 gait 节读取这四项，作为上述 launch 参数传入。
+# 路线的目标速度、加速度和航向 PID 则由该 JSON 的其他字段控制，不属于 CHAMP YAML。
+# nominal_height、max_linear_velocity_y、stance_depth 等未被上述 launch 覆盖的参数仍使用本文件值。
+# 实验因倾斜超过约 36.9° 停止的判断在 go2_mapping_endurance.py，不受本文件或动态 YAML 控制。
+/**:
+  ros__parameters:
+    loop_rate: 250.0
+    cmd_vel_timeout: 0.5  # seconds in simulation time; teleop publishes continuously
+    gait:
+      knee_orientation: ">>"
+      pantograph_leg: false
+      max_linear_velocity_x: 0.3
+      max_linear_velocity_y: 0.2
+      max_angular_velocity_z: 0.5
+      com_x_translation: 0.0
+      swing_height: 0.04
+      stance_depth: 0.005
+      stance_duration: 0.25
+      nominal_height: 0.30  # base_link to foot centre, metres
+    # Order within each leg: hip, thigh, calf, fixed foot.
+    joints_map:
+      left_front: [FL_hip_joint, FL_thigh_joint, FL_calf_joint, FL_foot_joint]
+      right_front: [FR_hip_joint, FR_thigh_joint, FR_calf_joint, FR_foot_joint]
+      left_hind: [RL_hip_joint, RL_thigh_joint, RL_calf_joint, RL_foot_joint]
+      right_hind: [RR_hip_joint, RR_thigh_joint, RR_calf_joint, RR_foot_joint]
+    links_map:
+      base: base_link
+      left_front: [FL_hip, FL_thigh, FL_calf, FL_foot]
+      right_front: [FR_hip, FR_thigh, FR_calf, FR_foot]
+      left_hind: [RL_hip, RL_thigh, RL_calf, RL_foot]
+      right_hind: [RR_hip, RR_thigh, RR_calf, RR_foot]

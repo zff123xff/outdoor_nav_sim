@@ -1,0 +1,59 @@
+# Classic Go2-W gait; links and joint names refer to the Gazebo Classic model.
+/**:
+  ros__parameters:
+    loop_rate: 250.0
+    cmd_vel_timeout: 0.5
+    gait:
+      knee_orientation: '>>'
+      pantograph_leg: false
+      max_linear_velocity_x: 0.3
+      max_linear_velocity_y: 0.25
+      max_angular_velocity_z: 0.5
+      com_x_translation: -0.025
+      swing_height: 0.04
+      stance_depth: 0.01
+      stance_duration: 0.25
+      nominal_height: 0.225
+    joints_map:
+      left_front:
+      - FL_hip_joint
+      - FL_thigh_joint
+      - FL_calf_joint
+      - FL_foot_joint
+      right_front:
+      - FR_hip_joint
+      - FR_thigh_joint
+      - FR_calf_joint
+      - FR_foot_joint
+      left_hind:
+      - RL_hip_joint
+      - RL_thigh_joint
+      - RL_calf_joint
+      - RL_foot_joint
+      right_hind:
+      - RR_hip_joint
+      - RR_thigh_joint
+      - RR_calf_joint
+      - RR_foot_joint
+    links_map:
+      base: go2w_body
+      left_front:
+      - FL_hip
+      - FL_thigh
+      - FL_calf
+      - FL_foot
+      right_front:
+      - FR_hip
+      - FR_thigh
+      - FR_calf
+      - FR_foot
+      left_hind:
+      - RL_hip
+      - RL_thigh
+      - RL_calf
+      - RL_foot
+      right_hind:
+      - RR_hip
+      - RR_thigh
+      - RR_calf
+      - RR_foot

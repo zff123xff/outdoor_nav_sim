@@ -1,0 +1,12 @@
+# Same topic names, timeout and priority as outdoor_all_go2w.launch.py.
+/**:
+  ros__parameters:
+    topics:
+      nav:
+        topic: cmd_vel_nav
+        timeout: 0.5
+        priority: 10
+      remote:
+        topic: cmd_vel_remote
+        timeout: 0.5
+        priority: 20
