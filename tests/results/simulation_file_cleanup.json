@@ -1,0 +1,23 @@
+{
+  "audited_files": 389,
+  "removed_files": 148,
+  "retained_original_files": 241,
+  "removed_bytes": 12321719,
+  "backup": "/tmp/outdoor_nav_sim_file_audit_20261021",
+  "clean_build_packages": 8,
+  "passed_tests": 5,
+  "asset_references_checked": 174,
+  "broken_installed_links": 0,
+  "all_retained_files_accounted": true,
+  "live_report": "simulation_cleanup_live.json",
+  "shutdown_observation": "After successful runtime checks, navigation straight_planner exited with code -11 during SIGINT shutdown. Navigation sources were not modified.",
+  "script_consolidation": {
+    "removed": [
+      "ros2.sh",
+      "commands/env.sh",
+      "simulation/navigation.sh"
+    ],
+    "shared_environment": "ros_env.sh",
+    "navigation": "outdoor_nav/launch_hil.sh"
+  }
+}

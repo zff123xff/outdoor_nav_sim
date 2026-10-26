@@ -1,0 +1,6 @@
+# Change broker address/credentials to connect the real control station broker.
+# Keep credentials out of source control; use a separate local config for secrets.
+address: tcp://127.0.0.1:1883
+mqtt_username: ''
+mqtt_passwd: ''
+vehicle_id: 1

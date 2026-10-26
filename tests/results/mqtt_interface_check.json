@@ -1,0 +1,16 @@
+{
+  "domain": "86",
+  "broker": "127.0.0.1:18884",
+  "namespace": "mqtt_probe",
+  "mqtt5_protocol_ack": "passed",
+  "chain": "MQTT -> original MqttNode -> MultiTask -> original task parser -> ExecuteTask -> MultiGoal -> GPS queue -> gp_goal -> original input_bridge -> goal_pose",
+  "waypoint_count": 2,
+  "goal_enu": [
+    0.8134605050401025,
+    -0.11112376741350916,
+    4.803035471923067e-05
+  ],
+  "mock_fcu_status_messages": 0,
+  "gazebo_or_robot_motion_tested": false,
+  "note": "Original hardware parser reads GPS as float32; coordinate quantization is preserved, not corrected here."
+}

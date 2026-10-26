@@ -1,0 +1,2 @@
+# 异常测试：不支持的 capability_id，预期拒绝。
+request_json: '{"agent_id": "robot_1", "capability_id": "unsupported_test"}'

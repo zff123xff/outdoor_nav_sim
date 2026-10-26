@@ -1,0 +1,9 @@
+# NavSatFix 单目标：经纬度为度，海拔为米，默认对应 map (1,0)。
+header:
+  frame_id: gps
+status:
+  status: 0
+  service: 1
+latitude: 40.94553529999938
+longitude: 113.17283089279196
+altitude: 1298.7345711102703

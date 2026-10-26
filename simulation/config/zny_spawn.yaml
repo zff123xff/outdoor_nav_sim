@@ -1,0 +1,12 @@
+# ZNY contract limits; physical tracking still depends on the robot model.
+spawn:
+  x: 0.0
+  y: 0.0
+  z: auto
+  yaw: 0.0
+drive:
+  max_linear_speed: 1.5
+  max_angular_speed: 1.0
+keyboard:
+  linear_speed: 0.3
+  angular_speed: 0.5

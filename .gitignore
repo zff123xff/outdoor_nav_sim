@@ -7,6 +7,7 @@ __pycache__/
 .pytest_cache/
 .cache/
 .DS_Store
+/deps/mqtt/
 
 # Local credentials and recorded sensor data
 .env

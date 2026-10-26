@@ -1,0 +1,12 @@
+# XYZ is relative to go2w_body; add body Z=0.43582611 for navigation base_link.
+lidar_min_range: 0.1
+lidar_max_range: 5.0
+lidar_resolution: 0.002
+lidar_noise_stddev: 0.01
+lidar_vertical_min: -0.12601277199
+lidar_vertical_max: 0.96377081345
+wheel_mu1: 0.6
+wheel_mu2: 0.6
+lidar_xyz: 0.18 0 0.09417389
+lidar_rpy: 0 0.3141592653589793 0
+lidar_publish_rate: 10

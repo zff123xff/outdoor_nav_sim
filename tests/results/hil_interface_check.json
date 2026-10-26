@@ -1,0 +1,53 @@
+{
+  "start": [
+    -0.11933562159538269,
+    -0.027669813483953476,
+    -0.19878467917442322
+  ],
+  "start_truth": [
+    -0.11017971376402014,
+    -0.028742366966264088,
+    -0.27830126044148085
+  ],
+  "goal": [
+    0.8796713936009621,
+    -0.07222296812523642
+  ],
+  "tf_z": -0.2038494348526001,
+  "success": true,
+  "error_m": 0.2991692213153439,
+  "final": [
+    0.5814762115478516,
+    -0.0481012687087059,
+    -0.2019026279449463
+  ],
+  "final_truth": [
+    0.5788291429478585,
+    -0.04853291183538266,
+    -0.2681281611397943
+  ],
+  "truth_displacement_m": 0.6892930220839514,
+  "peak_cmd": 1.0,
+  "new_action_statuses": {
+    "957852f85ea43ea7f589b2de38f7ad85": 6,
+    "5b44c0d91013bc042fd5b240c793e65a": 6,
+    "4b63633e9862863da35d5dcf500786c1": 4
+  },
+  "counts": {
+    "odom": 70,
+    "truth": 44,
+    "cloud": 17,
+    "ekf": 2,
+    "cmd": 25
+  },
+  "stopped_cmd": {
+    "vx": 0.0,
+    "wz": 0.0
+  },
+  "navigation_entry": "bash outdoor_nav/deploy/nx/run.sh hil",
+  "simulation_entry": "bash outdoor_nav_sim/simulation/start.sh gui:=false rviz:=false",
+  "ros_domain_id": 91,
+  "shared_config": "simulation/config/nav.yaml",
+  "after_directory_reorganization": true,
+  "nx_cross_machine_tested": false
+}

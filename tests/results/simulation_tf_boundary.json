@@ -1,0 +1,13 @@
+{
+  "domain_id": 122,
+  "input": "unchanged live fused odometry copied from domain 30; no goals or velocity published",
+  "passed": true,
+  "public_tf_publishers": [
+    "fused_odometry_tf",
+    "simulation_base_to_lidar",
+    "simulation_map_to_odom"
+  ],
+  "navigation_publish_tf": false,
+  "live_odom_messages": 56,
+  "full_tf_chain_received": true
+}

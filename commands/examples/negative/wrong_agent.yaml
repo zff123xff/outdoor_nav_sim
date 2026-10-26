@@ -1,0 +1,5 @@
+# 异常测试：错误 agent_id，预期拒绝。
+request_json: '{"mission_id": "sim_acceptance_001", "agent_id": "wrong_robot", "capability_id":
+  "goto_waypoints", "params": {"waypoint_frame": "gps", "waypoints": [{"lat": 40.94453529999938,
+  "lon": 113.17283089279196, "alt": 1298.7345711102703}, {"lat": 40.944535299997554,
+  "lon": 113.17284278558392, "alt": 1298.7345711102703}]}}'

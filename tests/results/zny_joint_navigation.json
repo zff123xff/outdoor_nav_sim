@@ -1,0 +1,45 @@
+{
+  "rates_wall_hz": {
+    "odom": 72.92753656889369,
+    "truth": 21.881981974252994,
+    "cloud": 9.376569764093876,
+    "status": 0.7329149399471901
+  },
+  "wall_stamp_age_seconds": {
+    "odom": 0.007668733596801758,
+    "cloud": 0.030980348587036133
+  },
+  "point_step": 12,
+  "point_fields": [
+    "x",
+    "y",
+    "z"
+  ],
+  "odom_frame": "robot_1/odom",
+  "child_frame": "robot_1/base_link",
+  "cloud_frame": "robot_1/livox_frame",
+  "public_tf_publishers": [
+    "base_link_to_lidar_tf",
+    "base_to_odom_tf",
+    "nav2_input_bridge"
+  ],
+  "navigation_active": true,
+  "goal": [
+    0.759633078212693,
+    -0.0830412201457297
+  ],
+  "arrival_error_m": 0.29728860752993475,
+  "truth_displacement_m": 0.6996393297160215,
+  "action_statuses": {
+    "1826f4ba2fe85bdc9c0ca86c4bf36b3f": 6,
+    "1d575680b565b1dacec832cbc0d00da0": 6,
+    "60fc0b5c67cf0b3a417f2bba3c0ac268": 4
+  },
+  "motion_success": true,
+  "passed": true,
+  "stop_verified": true,
+  "ros_domain_id": 97,
+  "gazebo_master": "http://127.0.0.1:11370",
+  "interface": "zny",
+  "nx_cross_machine_tested": false
+}

@@ -1,0 +1,23 @@
+{
+  "rates_wall_hz": {
+    "odom": 73.6008398711121,
+    "truth": 22.057813377214043,
+    "cloud": 9.408336247126936,
+    "status": 0.7355793010659977
+  },
+  "wall_stamp_age_seconds": {
+    "odom": 0.0006742477416992188,
+    "cloud": 0.07365131378173828
+  },
+  "point_step": 12,
+  "point_fields": [
+    "x",
+    "y",
+    "z"
+  ],
+  "odom_frame": "robot_1/odom",
+  "child_frame": "robot_1/base_link",
+  "cloud_frame": "robot_1/livox_frame",
+  "public_tf_publishers": [],
+  "passed": true
+}

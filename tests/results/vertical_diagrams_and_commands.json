@@ -1,0 +1,28 @@
+{
+  "layout": "top-to-bottom",
+  "rendered_and_visually_checked": true,
+  "diagrams": {
+    "overview": {
+      "file": "simulation/diagrams/navigation_overview.png",
+      "pixels": [
+        953,
+        1154
+      ]
+    },
+    "commands": {
+      "file": "simulation/diagrams/navigation_commands.png",
+      "pixels": [
+        775,
+        1456
+      ]
+    }
+  },
+  "canonical_mermaid_source": "simulation/README.md",
+  "local_markdown_links_checked": 46,
+  "manual_interface_report": "manual_commands.json",
+  "legacy_route_regression_report": "commands_with_manual_regression.json",
+  "navigation_packages_built": [
+    "nav2_input_bridge",
+    "robot_launch"
+  ]
+}

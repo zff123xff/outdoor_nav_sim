@@ -1,0 +1,10 @@
+{
+  "domain_id": 121,
+  "no_robot_or_odometry": true,
+  "navigation_restored": "no yolo_detect subscription or target_detected mux lock",
+  "bounded_velocity": "manual 0.3 m/s preempted navigation 0.1 m/s and ended with zero",
+  "target_detected_stop": "original input bridge emitted stop_planner; active manual sender exited; no mux lock added",
+  "target_detected_false": "false sent; no navigation resume or lock semantics",
+  "sigint": "sender published zero and exited normally",
+  "passed": true
+}

@@ -1,0 +1,4 @@
+address: tcp://127.0.0.1:18884
+mqtt_username: ''
+mqtt_passwd: ''
+vehicle_id: 1

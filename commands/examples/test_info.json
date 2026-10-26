@@ -1,0 +1,33 @@
+{
+  "namespace": "robot_1",
+  "reference": {
+    "reference_latitude": 40.9445353,
+    "reference_longitude": 113.172819,
+    "reference_altitude": 1298.7345711102703
+  },
+  "targets_enu": [
+    [
+      1.0,
+      0.0,
+      0.0
+    ],
+    [
+      2.0,
+      0.0,
+      0.0
+    ]
+  ],
+  "targets_gps": [
+    [
+      40.94453529999938,
+      113.17283089279196,
+      1298.7345711102703
+    ],
+    [
+      40.944535299997554,
+      113.17284278558392,
+      1298.7345711102703
+    ]
+  ],
+  "note": "Absolute map targets; not relative to the current robot. No ROS messages sent."
+}

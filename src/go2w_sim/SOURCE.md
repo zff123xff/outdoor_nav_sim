@@ -1,9 +1,0 @@
-# Model and controller provenance
-
-- Official URDF and meshes: https://github.com/unitreerobotics/unitree_ros/tree/5994d4faef0a9cadd3287f8de0199a67eeb2a259/robots/go2w_description . BSD-3-Clause; upstream LICENSE retained. Visual mesh scale, joint origins, masses and inertias are preserved.
-- Local names: body → go2w_body, imu → imu_link. base_link is a fixed navigation reference 0.43582611 m below the body; it is not a dynamically computed ground footprint. Wheels use cylindrical collisions fitted to their meshes (radius 0.086 m, width 0.0518 m). Wheel-centre track is 0.3802 m.
-- Hybrid split, gait and effort PID source: local robotdog_nav_0714/robotdog_nav/src/gazebo_quadbot/robots/go2w_control and go2w_config. Runtime controllers are ROS 2 joint_trajectory_controller, velocity_controllers, and CHAMP (its original license and provenance remain under src/champ).
-- Classic adaptation adds command limits, a monotonic timeout, namespaced topics, atomic startup and controller failure shutdown. The source algorithm sends vx to differential wheels and vy/wz to CHAMP, with differential wheels also participating in yaw.
-- Default wheel friction is 0.6 in both directions, matching the reference. No additional wheel-slip system is loaded.
-- MID360 housing is reused from the local mid360_simulation package. Its retained license is meshes/MID360_LICENSE. Mesh units and visual offset (0,0,-0.045) are preserved. Default body-relative mount is (0.25,0,0.13), pitch=0.4 rad, matching robot_scene/xacro/go2w_description.urdf.xacro. These are configuration values, not independently measured hardware extrinsics.
-- Laser rays and CSV scanning use the local Classic mid360_simulation plugin. Point-cloud TF frame is now explicitly configured rather than taken from the Gazebo sensor name. This plugin does not reproduce all hardware reflectivity, noise or timing characteristics.

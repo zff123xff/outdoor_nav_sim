@@ -1,0 +1,40 @@
+{
+  "data": {
+    "multiTask": {
+      "groupId": "sim_acceptance",
+      "editTaskId": "",
+      "dronesId": [
+        1
+      ],
+      "fences": [],
+      "threatAreas": [],
+      "taskStream": [
+        {
+          "taskId": "sim_mqtt_001",
+          "taskType": 7,
+          "dronesId": [
+            1
+          ],
+          "lowHeight": 1298.7345711102703,
+          "highHeight": 1298.7345711102703,
+          "arrivePath": [
+            {
+              "x_lat": 40.94453529999938,
+              "y_lon": 113.17283089279196,
+              "z_alt": 1298.7345711102703
+            },
+            {
+              "x_lat": 40.944535299997554,
+              "y_lon": 113.17284278558392,
+              "z_alt": 1298.7345711102703
+            }
+          ],
+          "areaType": 0,
+          "areaData": [],
+          "trackingDis": [],
+          "targetTypeArray": []
+        }
+      ]
+    }
+  }
+}

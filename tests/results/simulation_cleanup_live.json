@@ -1,0 +1,28 @@
+{
+  "rates_wall_hz": {
+    "odom": 72.27534654844017,
+    "truth": 21.668441851051444,
+    "cloud": 9.440150157416648,
+    "status": 0.7215987968514865
+  },
+  "wall_stamp_age_seconds": {
+    "odom": 0.0009315013885498047,
+    "cloud": 0.059468746185302734
+  },
+  "point_step": 12,
+  "point_fields": [
+    "x",
+    "y",
+    "z"
+  ],
+  "odom_frame": "robot_1/odom",
+  "child_frame": "robot_1/base_link",
+  "cloud_frame": "robot_1/livox_frame",
+  "public_tf_publishers": [
+    "base_link_to_lidar_tf",
+    "base_to_odom_tf",
+    "nav2_input_bridge"
+  ],
+  "navigation_active": true,
+  "passed": true
+}

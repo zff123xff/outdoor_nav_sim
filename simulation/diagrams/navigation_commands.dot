@@ -1,0 +1,43 @@
+digraph G {
+ graph [rankdir=TB, compound=true, nodesep=.35, ranksep=.65, bgcolor="white", pad=.2, fontname="Noto Sans CJK SC", fontsize=18];
+ node [shape=box, style="rounded,filled", fillcolor="white", color="#94a3b8", fontname="Noto Sans CJK SC", fontsize=13, margin=".18,.12"];
+ edge [color="#52647a", fontname="Noto Sans CJK SC", fontsize=11, arrowsize=.7];
+
+ subgraph cluster_commands {label="指令侧 · commands（可与仿真同机）";style="rounded,filled";color="#b98636";fillcolor="#fff8eb";
+ mqtt [label="MQTT 指控\nsend.sh mqtt / 外部指控"];
+ gateway [label="MQTT 网关与任务解析\ntaskStream → MultiTask → ExecuteTask"];
+ task [label="任务 / 航点列表\nsend.sh task / waypoints"];
+ queue [label="ExecuteTask 服务 / GPS 航点队列\n接收 MultiGoal，逐个发布 gp_goal\n根据导航 odom 距离判断到达"];
+ gps [label="单 GPS 目标\nsend.sh gp_goal / uav"];
+ forward [label="相对前进目标\nsend.sh forward"];
+ manual [label="手动速度 / 停车\nsend.sh velocity / yolo_detect"];
+ mqtt -> gateway -> queue;task -> queue;
+ {rank=same;mqtt;task;}
+ {rank=same;queue;gps;forward;manual;}
+ }
+ subgraph cluster_nav {label="导航侧 · outdoor_nav / NX";style="rounded,filled";color="#4d8c5b";fillcolor="#eef8f0";
+ bridge [label="nav2_input_bridge\nodom → 公共定位 TF（保留 z）\nGPS → 地图目标\ntarget_detected → 取消导航"];
+ planner [label="straight_planner\n路径规划"];
+ controller [label="controller_server\n结合里程计、局部代价地图跟踪路径"];
+ mux [label="twist_mux · 速度仲裁\n导航 10 / 手动 20"];
+ bridge -> planner [label="goal_pose"];
+ planner -> controller [label="FollowPath action"];
+ controller -> mux [label="cmd_vel_nav"];
+ }
+ subgraph cluster_sim {label="仿真侧 · simulation";style="rounded,filled";color="#3973ac";fillcolor="#eef5ff";
+ drive [label="CHAMP 腿轨迹 + 四轮速度\nGazebo 执行运动"];
+ sensor [label="PX4 ECL 定位 / MID360 扫描\n输出融合里程计与点云"];
+ model [label="机器人模型结构\nURDF + joint_states → robot_state_publisher\n私有模型 TF → 显示合并 → RViz"];
+ drive -> sensor; drive -> model [label="关节状态",style=dashed];
+ {rank=same;sensor;model;}
+ }
+ queue -> bridge [label="gp_goal · NavSatFix"];
+ gps -> bridge [label="gp_goal / uav/target_gps"];
+ forward -> planner [label="goal_pose"];
+ manual -> mux [label="cmd_vel_remote"];
+ manual -> bridge [label="target_detected · Bool",style=dashed];
+
+ mux -> drive [label="cmd_vel · Twist",penwidth=2];
+ sensor:e -> controller:e [label="mavros/odom / livox/lidar",style=dashed,constraint=false];
+
+}

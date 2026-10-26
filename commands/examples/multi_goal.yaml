@@ -1,0 +1,15 @@
+# GPS 多航点：经纬度为度，海拔为米；默认目标为 map (1,0) → (2,0)。
+multi_goal_points:
+- x_or_lat: 40.94453529999938
+  y_or_lon: 113.17283089279196
+  z_or_alt: 1298.7345711102703
+  yaw: 0.0
+  vel: 0.3
+- x_or_lat: 40.944535299997554
+  y_or_lon: 113.17284278558392
+  z_or_alt: 1298.7345711102703
+  yaw: 0.0
+  vel: 0.3
+is_gps_aid: true
+is_gps_hgt: true
+ctl_mode: 0

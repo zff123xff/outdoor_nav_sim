@@ -1,0 +1,5 @@
+# ExecuteTask 请求：request_json 内为 JSON，agent_id 需匹配命名空间。
+request_json: '{"mission_id": "sim_acceptance_001", "agent_id": "robot_1", "capability_id":
+  "goto_waypoints", "params": {"waypoint_frame": "gps", "waypoints": [{"lat": 40.94453529999938,
+  "lon": 113.17283089279196, "alt": 1298.7345711102703}, {"lat": 40.944535299997554,
+  "lon": 113.17284278558392, "alt": 1298.7345711102703}]}}'

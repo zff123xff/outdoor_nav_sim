@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>outdoor_nav_mqtt_sim</name><version>0.1.0</version>
+  <description>Simulation entry point reusing outdoor_nav MQTT task interfaces.</description>
+  <maintainer email="dev@example.com">dev</maintainer><license>Apache-2.0</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>rclcpp</depend><depend>ament_index_cpp</depend><depend>msg_set_msgs</depend>
+  <depend>mavros_msgs</depend><depend>nav_msgs</depend><depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend><depend>std_msgs</depend>
+  <exec_depend>multi_task_bridge</exec_depend><exec_depend>execute_task_server</exec_depend>
+  <exec_depend>multi_goal_to_gp_goal</exec_depend><exec_depend>launch_ros</exec_depend>
+  <exec_depend>python3-yaml</exec_depend><exec_depend>rclpy</exec_depend>
+  <export><build_type>ament_cmake</build_type></export>
+</package>

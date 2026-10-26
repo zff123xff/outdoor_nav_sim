@@ -1,0 +1,29 @@
+digraph G {
+ graph [rankdir=TB, nodesep=.35, ranksep=.55, bgcolor="white", pad=.2, fontname="Noto Sans CJK SC", fontsize=18];
+ node [shape=box, style="rounded,filled", fillcolor="white", color="#94a3b8", fontname="Noto Sans CJK SC", fontsize=13, margin=".18,.12"];
+ edge [color="#52647a", fontname="Noto Sans CJK SC", fontsize=11, arrowsize=.7];
+
+
+ subgraph cluster_sim {label="仿真侧 · 融合定位与模型结构";style="rounded,filled";color="#3973ac";fillcolor="#eef5ff";
+ pose [label="PX4 ECL 融合里程计\n发布 mavros/odom（完整 x/y/z 与姿态）"];
+ model [label="robot_state_publisher\nURDF + joint_states"];
+ private [label="私有 simulation/tf + tf_static\nbase_link → go2w_body\n身体 → 四腿 / 轮子 / IMU 等结构\n关节链使用仿真时间"];
+ model -> private;
+ merge [label="visualization_tf · rviz=true 时启动\n合并导航定位 TF 与私有结构 TF\n模型关节时间转为系统时间\n重复子帧以导航公共 TF 为准"];
+ visual [label="私有 visualization/tf + tf_static\nmap → odom → base_link → 身体 / 四腿 / 轮子\n仅供 RViz 显示"];
+ private -> merge;merge -> visual;
+ }
+ subgraph cluster_nav {label="导航侧 · outdoor_nav / NX";style="rounded,filled";color="#4d8c5b";fillcolor="#eef8f0";
+ bridge [label="nav2_input_bridge\n收到 odom → 发布 odom → base_link\n保留 odom.z，不强制置零\nGPS 原点只读取 YAML"];
+ fixed [label="固定 TF 发布者\nmap → odom\nbase_link → livox_frame"];
+ public [label="公共 /tf + /tf_static\nmap → odom → base_link → livox_frame\n动态 TF 保留 odom 时间戳"];
+ consumer [label="Nav2 消费公共定位 TF\n规划与路径跟踪"];
+ bridge -> public;fixed -> public;public -> consumer;
+ }
+ subgraph cluster_display {label="RViz 显示端（可在其他电脑）";style="rounded,filled";color="#b98636";fillcolor="#fff8eb";
+ rviz [label="完整机器人模型显示\nTF：visualization/tf + tf_static\nRobotModel：robot_description，TF Prefix=robot_1\nFixed Frame=robot_1/map，use_sim_time=false"];
+ }
+ pose -> bridge [label="mavros/odom"];
+ public -> merge [label="导航公共 TF"];
+ visual -> rviz [label="完整显示 TF"];
+}

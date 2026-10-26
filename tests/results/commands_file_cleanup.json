@@ -1,0 +1,31 @@
+{
+  "audited_original_files": 30,
+  "removed_files": 4,
+  "retained_original_files": 26,
+  "backup": "/tmp/outdoor_nav_commands_audit_20261021",
+  "mqtt_package_build_passed": true,
+  "shell_and_python_checks_passed": true,
+  "dry_run_routes_passed": [
+    "gp_goal",
+    "uav/target_gps",
+    "waypoints",
+    "task"
+  ],
+  "regenerated_examples_matched": 8,
+  "interface_report": "commands_cleanup_interfaces.json",
+  "normal_routes_passed": 5,
+  "negative_cases_passed": 3,
+  "mock_fcu_messages": 0,
+  "handover": "commands/README.md",
+  "per_file_audit": "commands/FILE_AUDIT.md",
+  "local_markdown_links_checked": 21,
+  "script_consolidation": {
+    "removed": [
+      "ros2.sh",
+      "commands/env.sh",
+      "simulation/navigation.sh"
+    ],
+    "shared_environment": "ros_env.sh",
+    "navigation": "outdoor_nav/launch_hil.sh"
+  }
+}

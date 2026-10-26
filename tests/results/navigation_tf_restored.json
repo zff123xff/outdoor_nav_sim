@@ -1,0 +1,16 @@
+{
+  "domain_id": 123,
+  "input": "unchanged live fused odometry copied from domain 30; no goals or velocity published",
+  "odom_z": -0.45718392729759216,
+  "tf_z": -0.45718392729759216,
+  "external_origin_subscriber": false,
+  "passed": true,
+  "public_tf_publishers": [
+    "base_link_to_lidar_tf",
+    "base_to_odom_tf",
+    "nav2_input_bridge"
+  ],
+  "navigation_publish_tf": true,
+  "live_odom_messages": 54,
+  "full_tf_chain_received": true
+}

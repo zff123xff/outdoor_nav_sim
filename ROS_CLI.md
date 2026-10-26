@@ -1,37 +1,19 @@
-# Classic 仿真 ROS CLI
+# ROS 通信与就绪检查
+
+在项目根目录先 `source ros_env.sh`，再直接使用 `ros2` 或 Python ROS 工具。默认域 30，保留已有 domain、RMW 和 DDS 配置。跨机两侧需一致。
 
 ```bash
-cd /mnt/d/shixi/south_lake_institution/sim_ws
-bash ros2.sh topic list --no-daemon --spin-time 5
-timeout 15 bash ros2.sh topic echo /clock rosgraph_msgs/msg/Clock --once
-timeout 15 bash ros2.sh topic echo /robot/ekf/status std_msgs/msg/String --once
-bash ros2.sh lifecycle get /robot/controller_server
-bash ros2.sh lifecycle get /robot/straight_planner
-```
-
-先确认 socket 网络权限、实际通信域和收到真实消息。仅发现话题不代表收到数据。ros_env.sh 加载 ROS、outdoor_nav/install、sim_ws/install；保留已有 RMW、DDS 和 ROS_DOMAIN_ID，未设置时才使用本项目的 domain 30 和 Fast DDS UDP 配置。自定义域、命名空间、profile 时，两个启动入口和 CLI 都需匹配。
-
-```bash
-ROS_DOMAIN_ID=31 bash ros2.sh topic list --no-daemon --spin-time 5
 source ros_env.sh
-ros2 control list_controllers
+ros2 topic list --no-daemon --spin-time 5
+timeout 12 ros2 topic echo /robot_1/mavros/odom nav_msgs/msg/Odometry --once --field header --qos-reliability best_effort
+timeout 12 ros2 topic echo /robot_1/livox/lidar sensor_msgs/msg/PointCloud2 --once --field header --qos-reliability best_effort
+ros2 lifecycle get /robot_1/controller_server
+ros2 lifecycle get /robot_1/straight_planner
+timeout 6 ros2 run tf2_ros tf2_echo robot_1/map robot_1/base_link
 ```
 
-Classic 启动时暂停物理仿真，完成模型生成和控制器配置后，排队激活全部控制器并解除暂停。等 EKF ready=1、导航 active 和实时 map→base_link TF 有效后再控制。混合模式应看到 joint_state_broadcaster、leg_trajectory_controller、wheel_velocity_controller 三个 active 控制器；不会同时运行固定腿控制器或 diff_drive_controller。
+检查 EKF 状态中的 ready=1，以及新鲜定位、点云、持续更新的 TF；发现话题不等于收到消息。查看 `topic info /robot_1/cmd_vel -v` 应只有一个仲裁发布者。
 
-用户授权运动后，先读取实时位姿：
+ZNY 对外传感器使用系统时间，导航不需要 /clock；Gazebo 内部仍使用仿真时间。定位保留 PX4 ECL 高度，不能伪造定位或将高度强制归零。起伏地形仍使用地图高度过滤，并不等同通用地面分割。生命周期启动失败有明确截止时间，需排查实际响应与 TF。
 
-```bash
-timeout 15 bash ros2.sh topic echo /robot/odom nav_msgs/msg/Odometry --once --field pose.pose
-timeout 15 bash ros2.sh run tf2_ros tf2_echo robot/map robot/base_link
-```
-
-“前方 d 米”必须按当前 yaw 计算：目标 (x+d*cos(yaw), y+d*sin(yaw))，不得假定当前位置或朝向。已有 scripts/navigate_forward.py 会检查就绪并计算目标；只有获得运动授权时才执行。发布成功不代表到达，要观察当前 action 状态、实际位置与目标误差，不能使用历史任务成功状态。
-
-默认在 RViz 使用 2D Goal Pose。手动速度入口为 /robot/cmd_vel_remote，twist_mux 保持遥控优先；非零手动命令会通过 stop_planner 取消旧导航。取消也可使用现有 /robot/target_detected 接口：
-
-```bash
-bash ros2.sh topic pub --once /robot/target_detected std_msgs/msg/Bool '{data: true}'
-```
-
-不要发布虚假定位 TF，不要关闭碰撞检查。simulation/truth/odom 仅用于实际运动验证，不作为定位输入。
+命名空间改为其他名字时同步替换以上命令。控制前读取新鲜位姿；前方距离必须按当前朝向换算。停止终端不会保证取消既有目标，须通过真实取消链路观察停止。

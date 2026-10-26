@@ -1,0 +1,10 @@
+# 异常测试：本地坐标多航点，当前队列不支持，预期拒绝。
+multi_goal_points:
+- x_or_lat: 1.0
+  y_or_lon: 0.0
+  z_or_alt: 0.0
+  yaw: 0.0
+  vel: 0.3
+is_gps_aid: false
+is_gps_hgt: false
+ctl_mode: 0

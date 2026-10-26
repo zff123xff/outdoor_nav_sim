@@ -1,0 +1,9 @@
+{
+  "domain_id": 114,
+  "no_robot_or_odometry": true,
+  "bounded_velocity": "manual 0.3 m/s preempted navigation 0.1 m/s and ended with zero",
+  "yolo_stop": "real input bridge emitted stop_planner; active sender exited; mux held both nav and remote inputs",
+  "yolo_clear": "false released the mux lock",
+  "sigint": "sender published zero and exited normally",
+  "passed": true
+}

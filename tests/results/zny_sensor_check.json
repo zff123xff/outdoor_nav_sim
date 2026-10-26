@@ -1,0 +1,27 @@
+{
+  "rates_wall_hz": {
+    "odom": 73.31516258982307,
+    "truth": 22.000654293959897,
+    "cloud": 9.388991116527793,
+    "status": 0.7342344980880977
+  },
+  "wall_stamp_age_seconds": {
+    "odom": 0.011351585388183594,
+    "cloud": 0.07510066032409668
+  },
+  "point_step": 12,
+  "point_fields": [
+    "x",
+    "y",
+    "z"
+  ],
+  "odom_frame": "robot_1/odom",
+  "child_frame": "robot_1/base_link",
+  "cloud_frame": "robot_1/livox_frame",
+  "public_tf_publishers": [],
+  "passed": true,
+  "ros_domain_id": 97,
+  "gazebo_master": "http://127.0.0.1:11370",
+  "interface": "zny",
+  "nx_cross_machine_tested": false
+}

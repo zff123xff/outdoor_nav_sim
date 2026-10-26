@@ -1,0 +1,14 @@
+{
+  "domain_id": 103,
+  "no_robot_or_odometry": true,
+  "gp_goal": "received and converted to ENU",
+  "uav/target_gps": "received and converted to ENU",
+  "waypoints": "two GPS waypoints received by original queue",
+  "task": "two GPS waypoints received by original queue",
+  "negative_wrong_agent": "rejected before ROS submission",
+  "negative_unsupported_task": "original ExecuteTask service rejected capability",
+  "negative_local_waypoints": "original GPS queue skipped local waypoints; no GPS goal emitted",
+  "mqtt": "protocol ACK and MultiTask -> ExecuteTask -> MultiGoal received",
+  "mock_fcu_messages": 0,
+  "passed": true
+}

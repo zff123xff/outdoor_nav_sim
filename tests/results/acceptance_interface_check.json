@@ -1,0 +1,14 @@
+{
+  "ros_domain": "83",
+  "robot_motion_tested": false,
+  "execute_task_rejection_checks": "passed",
+  "execute_task_to_multi_goal_to_gp_goal_to_goal_pose": "passed",
+  "multi_goal_point_count": 2,
+  "first_goal_enu": [
+    1.00000000120453,
+    -7.081154551613622e-10,
+    0.0
+  ],
+  "generated_gps_roundtrip_tolerance_m": 0.001,
+  "scope": "Interface-only; no Gazebo, controller, fabricated localization or motion commands; second waypoint arrival not tested."
+}

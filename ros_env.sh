@@ -1,30 +1,47 @@
 #!/usr/bin/env bash
-# Source this file to connect this shell to the local Go2-W simulation.
-_ros_cli_ws="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-_ros_cli_nav="${OUTDOOR_NAV_WS:-$(dirname "$_ros_cli_ws")/outdoor_nav}"
-_ros_cli_base="${CODEX_HOME:-$HOME/.codex}/ros/setup.bash"
-if [[ ! -r "$_ros_cli_base" ]]; then
-    _ros_cli_base="/opt/ros/${ROS_DISTRO:-humble}/setup.bash"
-fi
-for _ros_cli_setup in "$_ros_cli_base" "$_ros_cli_nav/install/local_setup.bash" "$_ros_cli_ws/install/local_setup.bash"; do
-    if [[ ! -r "$_ros_cli_setup" ]]; then
-        echo "Missing ROS setup file: $_ros_cli_setup" >&2
-        return 1 2>/dev/null || exit 1
-    fi
-done
-if [[ ! "${ROS_DOMAIN_ID:-30}" =~ ^[0-9]+$ ]] || (( 10#${ROS_DOMAIN_ID:-30} > 232 )); then
-    echo 'ROS_DOMAIN_ID must be an integer between 0 and 232.' >&2
-    return 1 2>/dev/null || exit 1
-fi
+# Shared environment for simulation, commands and direct ROS CLI use.
+# Navigation installation is optional unless OUTDOOR_NAV_OPTIONAL=0 is set.
+_cmd_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_cmd_nav="${OUTDOOR_NAV_WS:-$(dirname "$_cmd_root")/outdoor_nav}"
+_cmd_base="${CODEX_HOME:-$HOME/.codex}/ros/setup.bash"
+[[ -r "$_cmd_base" ]] || _cmd_base="/opt/ros/${ROS_DISTRO:-humble}/setup.bash"
 export ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-30}"
 export RMW_IMPLEMENTATION="${RMW_IMPLEMENTATION:-rmw_fastrtps_cpp}"
-if [[ "$RMW_IMPLEMENTATION" == rmw_fastrtps_cpp && -z "${FASTRTPS_DEFAULT_PROFILES_FILE:-}" && -z "${FASTDDS_DEFAULT_PROFILES_FILE:-}" ]]; then
-    export FASTRTPS_DEFAULT_PROFILES_FILE="$_ros_cli_ws/config/fastdds_udp.xml"
-    export FASTDDS_DEFAULT_PROFILES_FILE="$FASTRTPS_DEFAULT_PROFILES_FILE"
+if [[ ! "$ROS_DOMAIN_ID" =~ ^[0-9]+$ ]] || (( 10#$ROS_DOMAIN_ID > 232 )); then
+ echo 'ROS_DOMAIN_ID must be an integer between 0 and 232.' >&2
+ return 1
 fi
-source "$_ros_cli_base" || return 1
-source "$_ros_cli_nav/install/local_setup.bash" || return 1
-source "$_ros_cli_ws/install/local_setup.bash" || return 1
-export ROS_LOG_DIR="${ROS_LOG_DIR:-/tmp/south_lake_ros_cli}"
+if [[ "$RMW_IMPLEMENTATION" == rmw_fastrtps_cpp && -z "${FASTRTPS_DEFAULT_PROFILES_FILE:-}" && -z "${FASTDDS_DEFAULT_PROFILES_FILE:-}" ]]; then
+ export FASTRTPS_DEFAULT_PROFILES_FILE="$_cmd_root/simulation/config/fastdds_udp.xml"
+ export FASTDDS_DEFAULT_PROFILES_FILE="$FASTRTPS_DEFAULT_PROFILES_FILE"
+fi
+source "$_cmd_base" || return 1
+if [[ -n "${HIL_INSTALL_DIR:-}" ]]; then
+ _cmd_install="$HIL_INSTALL_DIR"
+elif [[ -r "$_cmd_nav/install_nx/local_setup.bash" ]]; then
+ _cmd_install="$_cmd_nav/install_nx"
+else
+ _cmd_install="$_cmd_nav/install"
+fi
+if [[ -r "$_cmd_install/local_setup.bash" ]]; then
+ source "$_cmd_install/local_setup.bash" || return 1
+elif [[ "${OUTDOOR_NAV_OPTIONAL:-1}" != 1 ]]; then
+ echo "Missing navigation workspace: $_cmd_install" >&2
+ return 1
+fi
+if [[ -z "${HIL_INSTALL_DIR:-}" && -r "$_cmd_root/install/local_setup.bash" ]]; then
+ source "$_cmd_root/install/local_setup.bash" || return 1
+fi
+if [[ "$(uname -m)" == x86_64 ]]; then
+ if [[ -d "$_cmd_root/deps/twist_mux/opt/ros/humble/share/ament_index" ]]; then
+  export AMENT_PREFIX_PATH="$_cmd_root/deps/twist_mux/opt/ros/humble:${AMENT_PREFIX_PATH:-}"
+ fi
+ if [[ -z "${HIL_INSTALL_DIR:-}" && -d "$_cmd_root/deps/mqtt/usr" ]]; then
+  export LD_LIBRARY_PATH="$_cmd_root/deps/mqtt/usr/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH:-}"
+  export PYTHONPATH="$_cmd_root/deps/mqtt/usr/lib/python3/dist-packages:${PYTHONPATH:-}"
+  export CMAKE_PREFIX_PATH="$_cmd_root/deps/mqtt/usr:${CMAKE_PREFIX_PATH:-}"
+ fi
+fi
+export ROS_LOG_DIR="${ROS_LOG_DIR:-/tmp/outdoor_nav_sim_ros}"
 mkdir -p "$ROS_LOG_DIR"
-unset _ros_cli_ws _ros_cli_nav _ros_cli_setup _ros_cli_base
+unset _cmd_root _cmd_nav _cmd_base _cmd_install

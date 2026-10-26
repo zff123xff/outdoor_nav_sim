@@ -1,0 +1,40 @@
+digraph G {
+ graph [rankdir=TB, compound=true, nodesep=.35, ranksep=.65, bgcolor="white", pad=.2, fontname="Noto Sans CJK SC", fontsize=18];
+ node [shape=box, style="rounded,filled", fillcolor="white", color="#94a3b8", fontname="Noto Sans CJK SC", fontsize=13, margin=".18,.12"];
+ edge [color="#52647a", fontname="Noto Sans CJK SC", fontsize=11, arrowsize=.7];
+
+ subgraph cluster_commands {label="指令侧 · commands"; style="rounded,filled"; color="#b98636"; fillcolor="#fff8eb";
+ c [label="目标与任务入口\nGPS / UAV / 航点 / ExecuteTask / MQTT / forward"];
+ manual [label="手动控制\nvelocity：限时速度\nyolo_detect：检测 true / false"];
+ {rank=same;c;manual;}
+ }
+ subgraph cluster_nav {label="导航侧 · outdoor_nav / NX"; style="rounded,filled"; color="#4d8c5b"; fillcolor="#eef8f0";
+ target [label="目标接入与转换\nnav2_input_bridge：GPS → goal_pose"];
+ state [label="状态与感知接入\n里程计中继 → odom\n输入桥 + 固定发布者 → 公共 TF\n点云 → 障碍信息"];
+ planner [label="路径规划与跟踪\nstraight_planner → controller_server\n局部代价地图参与避障"];
+ mux [label="twist_mux · 唯一速度仲裁\n导航 10 / 手动 20"];
+ {rank=same;target;state;}
+ target -> planner;state -> planner [label="位姿 / TF / 障碍"];
+ planner -> mux [label="cmd_vel_nav"];
+ }
+ subgraph cluster_sim {label="仿真侧 · outdoor_nav_sim / simulation"; style="rounded,filled"; color="#3973ac"; fillcolor="#eef5ff";
+ drive [label="混合运动控制\nCHAMP 腿部轨迹 + 四轮速度"];
+ world [label="Gazebo Classic\n物理场景与 Go2-W 机器狗"];
+ sensor [label="传感器与定位输出\nIMU / GPS 等 → PX4 ECL 里程计\nMID360 射线扫描 → 点云"];
+ model [label="robot_state_publisher\nURDF + joint_states → 身体 / 腿轮 TF\nsimulation/tf + simulation/tf_static"];
+ visual [label="visualization_tf · 仅显示合并\n导航公共 TF + 私有模型 TF\n模型关节时间转为系统时间"];
+ rviz [label="仿真 launch 打开的 RViz\n订阅 visualization/tf + tf_static\n可查看完整模型结构"];
+
+ drive -> world -> sensor;
+ world -> model [label="joint_states"];
+ model -> visual [label="私有模型 TF"];
+ visual -> rviz [label="显示用完整 TF"];
+ {rank=same;sensor;model;}
+ }
+ state:e -> visual:e [label="公共 /tf + /tf_static",style=dashed,constraint=false,ltail=cluster_nav,lhead=cluster_sim];
+ c -> target [label="目标 / 任务（按类型接入）"];
+ manual -> mux [label="cmd_vel_remote"];
+ manual -> target [label="target_detected · Bool",style=dashed];
+ mux -> drive [label="③ cmd_vel · Twist",penwidth=2];
+ sensor:w -> state:w [label="① mavros/odom · Odometry\n② livox/lidar · PointCloud2",constraint=false,penwidth=2,ltail=cluster_sim,lhead=cluster_nav];
+}
