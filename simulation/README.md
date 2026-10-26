@@ -19,6 +19,159 @@
 
 本次迁移验证：8 个 ROS 包重新构建成功，5 项既有测试通过；安装目录无失效软链接，Classic 导航适配器已确认使用新的场景源码路径。
 
+## Docker：Ubuntu 20.04 宿主机
+
+### 环境与依赖范围
+
+宿主机只需 Linux Docker Engine、当前用户的 Docker 访问权限、显卡驱动和 X11 桌面；不安装或加载宿主机 ROS/Gazebo。基础镜像是 `docker.io/osrf/ros:humble-desktop-full-jammy`，容器为 Ubuntu 22.04、ROS 2 Humble、Gazebo **Classic 11**。不安装 Fortress/Gazebo Sim 启动栈。Dockerfile 构建时执行 `gazebo --version`，版本不是 11 则构建失败。
+
+扫描范围包括所有 9 个 `package.xml`、CMake、实际 launch、Classic world/model/xacro 插件及现有构建和 MQTT 安装脚本：
+
+| 真实用途 | 镜像依赖处理 |
+| --- | --- |
+| Classic 世界、MID360、PX4 传感器插件 | gazebo、Jammy 的 libgazebo-dev（Classic 11 开发库）、gazebo_ros_pkgs、gazebo_plugins、Boost chrono |
+| CHAMP 腿与四轮控制 | gazebo_ros2_control；rosdep 按 manifests 安装 velocity/position/diff_drive、joint_state_broadcaster、joint_trajectory_controller，CHAMP 源码已在本仓库 |
+| 可视化与诊断 | RViz2、rqt、rqt_common_plugins、Mesa、xauth |
+| ROS 网络 | Fast DDS 默认；安装 Cyclone DDS 供显式选择 |
+| 标准 ROS、控制、Nav2、twist_mux 依赖 | 从 manifests 执行 rosdep 安装，包括 nav2_controller、nav2_lifecycle_manager、nav2_regulated_pure_pursuit_controller、twist_mux |
+| 可选 MQTT 网关 | Paho C/C++、JSONCPP、yaml-cpp、OpenSSL、mosquitto、Python Paho/pymap3d/shapely；ROS 消息依赖通过 rosdep |
+
+本仓库插件不直接依赖 PCL、pcl_ros、pcl_conversions 或 cv_bridge，因此不额外显式安装这些包；基础 desktop-full 或依赖链可能自带。没有为本仓库安装整套 navigation2/nav2_bringup：导航算法属于相邻 `outdoor_nav`，其中还有修改过的 Nav2 和自定义包，发行版二进制不能替代。镜像只复制依赖清单和容器脚本；源码、模型、ECL/Matrix 都从宿主机实时挂载。
+
+### 构建镜像与进入容器
+
+在宿主机普通用户的桌面终端执行：
+
+```bash
+cd /path/to/outdoor_nav_sim
+./docker/build.sh
+ROS_DOMAIN_ID=10 ./docker/run.sh
+```
+
+`build.sh` 使用仓库根目录作为构建上下文，传入当前用户 UID/GID，默认镜像名 `outdoor_nav_humble`。容器默认用户 `ros`，UID/GID 与宿主机一致，有容器内 sudo 权限；不要通过 `sudo ./docker/build.sh` 构建 root 用户镜像。切换宿主机用户后重新构建。可设置 `DOCKER_IMAGE` 同时覆盖 build/run 镜像名；构建参数可追加，例如 `./docker/build.sh --no-cache`。
+
+`run.sh` 使用 `--network host`、`--shm-size 1g`，把当前仓库挂到 `/workspace`。默认域为 **10**，已有 `ROS_DOMAIN_ID` 优先，未改动本地启动脚本原有的域 30 默认值。容器进入时自动 source `/opt/ros/humble/setup.bash`、已存在的 `/workspace/install/setup.bash` 和项目 `ros_env.sh`。容器使用系统依赖，跳过仓库 `deps/` 中以前解包的 x86 二进制。
+
+为隔离旧机器产物，`/workspace/{build,install,log}` 分别映射到宿主机 `.docker-workspace/{build,install,log}`，首次为空，保留宿主机原来的同名目录。源码修改立即可见；编译输出属于当前 UID，退出容器后仍保留。可通过 `DOCKER_ARTIFACT_DIR=/absolute/path` 为另一镜像选择新的产物目录；更换 ROS/架构时应换目录或清理。
+
+### rosdep、重新编译与启动
+
+仓库不是根目录 `src/` 结构。镜像已初始化 rosdep 并根据 `simulation/src commands/src` 安装依赖；源码依赖变更后可在容器中重新执行：
+
+```bash
+cd /workspace
+source ros_env.sh
+rosdep update --rosdistro humble
+sudo apt-get update
+rosdep install --from-paths simulation/src commands/src --ignore-src -r -y \
+  --rosdistro humble \
+  --skip-keys "$(tr '\n' ' ' < /usr/local/share/outdoor-nav/rosdep-skip-keys.txt)"
+```
+
+skip 文件仅列出相邻 `outdoor_nav` 提供的六个自定义包：`nav2_input_bridge`、`nav2_straight_planner`、`msg_set_msgs`、`multi_task_bridge`、`execute_task_server`、`multi_goal_to_gp_goal`。跳过只是避免 rosdep 查询不存在的公共安装规则，不代表这些包已安装。仿真默认 `navigation:=false` 可独立构建启动；MQTT 和任务链仍需这些源码包。
+
+首次编译无需清理，因为容器输出目录全新。容器内的 build/install/log 是挂载点，不能用 `rm -rf build install log` 删除挂载点本身；需要全量重编译时，先退出所有使用这些产物的容器，再在**宿主机**执行：
+
+```bash
+rm -rf .docker-workspace/build .docker-workspace/install .docker-workspace/log
+ROS_DOMAIN_ID=10 ./docker/run.sh
+```
+
+这与删除容器工作区的 build/install/log 后重新构建效果相同，不会加载旧 Ubuntu 22.04 工作区的产物。在容器中执行实际编译命令：
+
+```bash
+cd /workspace
+colcon build --base-paths simulation/src --executor sequential --symlink-install \
+  --cmake-args -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+source install/setup.bash
+
+# 运行项目原有构建和测试流程（已编译的包增量处理）
+bash build_sim.sh
+
+# 核对 Classic 和实际启动参数
+gazebo --version
+ros2 launch simulation_bringup go2_px4_sim.launch.py --show-args
+
+# 真实仿真入口：农田 / Go2-W / CHAMP / PX4 ECL / MID360 / ZNY
+bash simulation/start.sh
+# 无桌面时用：bash simulation/start.sh gui:=false rviz:=false
+```
+
+不要在根目录裸跑 `colcon build`：它还会找到可选 MQTT 网关，网关需要本仓库以外的消息与后端源码。默认仿真仅需 `simulation/src` 中的 8 个包。`build_sim.sh` 运行既有测试，其中生命周期测试使用独立 domain 81；运行测试前确保没有实际机器人使用该域。
+
+### Gazebo、RViz、rqt 与 GPU
+
+在宿主机桌面终端进入容器，脚本传入 `DISPLAY`、挂载 `/tmp/.X11-unix`、设置 `QT_X11_NO_MITSHM=1`，优先挂载当前 Xauthority cookie。没有 cookie 时使用仅限当前 UID 的 `xhost +si:localuser:<用户名>`，退出时撤销本脚本新增的授权；不会运行开放全部访问的 `xhost +`。并发 GUI 容器建议使用 Xauthority，避免一个终端退出时撤销另一个终端依赖的临时授权。当前实现面向本机 X11/Xwayland，不自动配置 SSH X11 转发。
+
+仿真入口默认打开 gzclient 和 RViz。另开宿主机终端，使用同一域进入第二个容器即可运行 GUI 工具（第二个终端不要同时启动另一套 gzserver）：
+
+```bash
+ROS_DOMAIN_ID=10 ./docker/run.sh
+# 容器中分别按需执行
+gzclient
+rqt
+# 项目显示 TF 的 RViz 配置说明见下文“定位 TF、模型结构 TF 与 RViz”
+rviz2
+```
+
+`gazebo` 命令也可独立显示 GUI，但它会启动新的 server，应在没有运行项目 gzserver 时使用。容器的 Gazebo model/plugin/resource 路径先清空再由容器 Classic、ROS、workspace 及 launch 设置；不导入宿主机路径，也不挂载宿主机 `/opt/ros`、Gazebo 库或整个 `/usr`。Classic 自带的 `ignition-*` 底层库属于它的依赖，不表示使用了 Gazebo Sim。世界文件使用的 `cpr_agriculture`、`DepotCollision` 和机器人/雷达资源均在仓库中。
+
+由于 host network 共享端口，容器 Classic 默认使用 `http://127.0.0.1:11346`，避开宿主机 Classic 默认的 11345。若 11346 已被其他实例占用，在所有相关终端一致设置 `DOCKER_GAZEBO_MASTER_URI=http://127.0.0.1:11347`；不要让两个 gzserver 共用 master 端口。该设置独立于宿主机的 `GAZEBO_MASTER_URI`。
+
+GPU 自动模式先检查宿主机 `nvidia-smi`，再用实际 `docker run --gpus all ... nvidia-smi -L` 验证 Toolkit 能否工作。通过后加入 `--gpus all` 和 `graphics,utility,compute,display` 驱动能力；失败则普通运行。有 `/dev/dri` 时映射设备，并加入其数字设备组以供普通用户访问。没有 GPU 也能进入容器，可使用 Mesa 软件渲染：
+
+```bash
+DOCKER_GPU=0 LIBGL_ALWAYS_SOFTWARE=1 ./docker/run.sh
+DOCKER_GUI=0 ./docker/run.sh bash -c 'bash simulation/start.sh gui:=false rviz:=false'
+# 强制要求 NVIDIA，探测失败则明确报错：
+DOCKER_GPU=1 ./docker/run.sh
+```
+
+`DOCKER_GUI=1` 强制要求 X11，默认 `auto` 在没有 DISPLAY 时进入无 GUI 模式。NVIDIA Container Toolkit 必须由宿主机管理员配置；本仓库不修改宿主机 ROS/Gazebo 或驱动配置。软件渲染的仿真实时率取决于宿主机性能。
+
+### 与 Jetson Orin NX 的 DDS 通信
+
+容器 host network 直接使用宿主机网卡；NX 与容器需可互通、域和机器人命名空间一致。默认 Fast DDS 使用仓库 `simulation/config/fastdds_udp.xml`，显式禁用 SHM，避免 host network 下发现成功但跨 IPC 命名空间收不到消息。自定义 RMW/DDS 配置优先保留；可显式设 `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp`，并配置适用的 Cyclone URI。
+
+仿真电脑：`ROS_DOMAIN_ID=10 ./docker/run.sh`，容器内 `bash simulation/start.sh`。NX 上使用其已经编译的 **ARM64** outdoor_nav 工作区（仿真容器不挂载 NX 或宿主机旧 install）：
+
+```bash
+cd /path/to/outdoor_nav
+ROS_DOMAIN_ID=10 bash deploy/nx/run.sh hil
+```
+
+两端同步 `simulation/config/nav.yaml` 的 GPS 原点、命名空间和 ZNY 外参，导航使用系统时间。等待 PX4 EKF `ready=1`、导航 active 和新鲜 TF，再下达任务。进入容器后可检查实际消息，命名空间非默认时替换 `robot_1`：
+
+```bash
+source ros_env.sh
+ros2 topic list --no-daemon --spin-time 5
+timeout 12 ros2 topic echo /robot_1/mavros/odom nav_msgs/msg/Odometry \
+  --once --field header --qos-reliability best_effort
+timeout 12 ros2 topic echo /robot_1/livox/lidar sensor_msgs/msg/PointCloud2 \
+  --once --field header --qos-reliability best_effort
+ros2 lifecycle get /robot_1/controller_server
+timeout 6 ros2 run tf2_ros tf2_echo robot_1/map robot_1/base_link
+```
+
+仅发现 topic 不代表通信成功。多网卡/VPN、宿主机或 NX 防火墙、Wi-Fi AP 禁止组播均需按真实网络排查，允许双方 DDS UDP 流量。不要设 `ROS_LOCALHOST_ONLY=1`。脚本传入已有的 `ROS_LOCALHOST_ONLY`、`ROS_DISCOVERY_SERVER`、`CYCLONEDDS_URI`、`FASTRTPS_DEFAULT_PROFILES_FILE`、`FASTDDS_DEFAULT_PROFILES_FILE`；仓库内的绝对路径自动转换为 `/workspace` 路径（含 `file://` URI），其他文件路径必须在容器中可读。自定义配置可放在源码挂载目录中，或通过以下只读挂载：
+
+```bash
+DOCKER_DDS_DIR="$HOME/dds" \
+FASTRTPS_DEFAULT_PROFILES_FILE=/dds/fastdds.xml \
+FASTDDS_DEFAULT_PROFILES_FILE=/dds/fastdds.xml \
+ROS_DOMAIN_ID=10 ./docker/run.sh
+```
+
+### 外部依赖与验证边界
+
+`outdoor_nav` 的自定义导航、任务消息、服务和 `swarms_backend` 源码不属于本仓库，镜像不下载、复制或修改相邻工作区。完整导航在 NX 运行；可选 MQTT 网关需要另行挂载该源码并在 Jammy/Humble 容器内重编译相关包，然后按 `commands/README.md` 构建网关（CMake 设置 `OUTDOOR_NAV_SOURCE`）。不要复用以前机器的 install 或 x86 产物到 NX。容器已经安装 MQTT 原生库，不必再运行向 `deps/mqtt` 解包系统二进制的旧安装步骤。
+
+拉取基础镜像、APT 和 rosdep 需要网络；宿主机 Docker 权限、NVIDIA Toolkit、显示认证和 NX 防火墙不能在镜像内自动解决。
+
+2026-10-26 交付验证：当前验证机为 Ubuntu 22.04，`docker` 实际是 Podman 3.4.4 兼容 CLI，使用 `./docker/build.sh --format docker` 成功构建最终镜像（真正 Docker Engine 使用前述普通构建命令）。断网容器中确认用户 `ros` 的 UID/GID 为 1000，Classic 版本为 11.10.2，GUI 工具命令、标准 Nav2/控制器/DDS 包和 MQTT Python 导入正常。源码只读挂载，使用 `/tmp` 全新输出目录编译 8 个仿真包成功，`px4_fusion`、`hybrid_command` 两项既有测试通过，实际 `go2_px4_sim.launch.py --show-args` 加载成功。上游 ECL/Matrix 编译出现 GCC `-Wstringop-overflow` 警告，未修改上游文件，融合测试通过。当前 rootless Podman 验证使用 `--userns=keep-id` 保持绑定目录 UID；交付的运行脚本面向 Linux Docker Engine。
+
+运行脚本另通过模拟 Docker 命令检查了 GPU 探测成功/失败降级、无桌面、自定义域与 DDS、带空格路径，以及 X11 cookie 与 xhost 授权清理。尚未在 Ubuntu 20.04 Docker Engine、真实 GUI/NVIDIA 渲染和 Jetson NX 跨机 DDS 上实机验收；工具命令存在与启动参数加载不代表窗口和跨机数据已经验收。
+
 
 ## 当前运行流程
 

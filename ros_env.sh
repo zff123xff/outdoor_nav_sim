@@ -32,7 +32,7 @@ fi
 if [[ -z "${HIL_INSTALL_DIR:-}" && -r "$_cmd_root/install/local_setup.bash" ]]; then
  source "$_cmd_root/install/local_setup.bash" || return 1
 fi
-if [[ "$(uname -m)" == x86_64 ]]; then
+if [[ "${OUTDOOR_NAV_SYSTEM_DEPS:-0}" != 1 && "$(uname -m)" == x86_64 ]]; then
  if [[ -d "$_cmd_root/deps/twist_mux/opt/ros/humble/share/ament_index" ]]; then
   export AMENT_PREFIX_PATH="$_cmd_root/deps/twist_mux/opt/ros/humble:${AMENT_PREFIX_PATH:-}"
  fi

@@ -30,6 +30,8 @@ outdoor_nav_sim/
 
 ## 启动
 
+Ubuntu 20.04 宿主机使用容器时，先按 [Docker 环境流程](simulation/README.md#dockerubuntu-2004-宿主机) 构建镜像、重新编译并启动。宿主机不需要安装 ROS 或 Gazebo。
+
 在本目录运行 `bash build_sim.sh` 构建仿真主体；导航端另需编译 outdoor_nav。MQTT 为可选功能，需要时运行 `bash commands/setup_mqtt.sh`。
 
 仿真电脑：

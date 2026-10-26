@@ -2,6 +2,7 @@
 /build/
 /install/
 /log/
+/.docker-workspace/
 __pycache__/
 *.py[cod]
 .pytest_cache/

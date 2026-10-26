@@ -1,0 +1,17 @@
+# Dependency-only build context: never send the workspace, native installs,
+# vendored binary deps, models, credentials or logs to the Docker daemon.
+**
+!docker/
+!docker/**
+!simulation/
+!simulation/src/
+!simulation/src/sim_*/
+!simulation/src/sim_*/package.xml
+!simulation/src/third_party/
+!simulation/src/third_party/champ/
+!simulation/src/third_party/champ/*/
+!simulation/src/third_party/champ/*/package.xml
+!commands/
+!commands/src/
+!commands/src/outdoor_nav_mqtt_sim/
+!commands/src/outdoor_nav_mqtt_sim/package.xml
