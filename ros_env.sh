@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Shared environment for simulation, commands and direct ROS CLI use.
-# Navigation installation is optional unless OUTDOOR_NAV_OPTIONAL=0 is set.
+# Load a navigation overlay when available; remote navigation needs no local install.
 _cmd_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 _cmd_nav="${OUTDOOR_NAV_WS:-$(dirname "$_cmd_root")/outdoor_nav}"
 _cmd_base="${CODEX_HOME:-$HOME/.codex}/ros/setup.bash"
@@ -25,9 +25,6 @@ else
 fi
 if [[ -r "$_cmd_install/local_setup.bash" ]]; then
  source "$_cmd_install/local_setup.bash" || return 1
-elif [[ "${OUTDOOR_NAV_OPTIONAL:-1}" != 1 ]]; then
- echo "Missing navigation workspace: $_cmd_install" >&2
- return 1
 fi
 if [[ -z "${HIL_INSTALL_DIR:-}" && -r "$_cmd_root/install/local_setup.bash" ]]; then
  source "$_cmd_root/install/local_setup.bash" || return 1

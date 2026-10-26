@@ -6,7 +6,7 @@ mode="${1:---help}"
 case "$mode" in
  -h|--help) echo 'Usage: bash commands/start.sh [tasks|mqtt|mqtt-gateway|broker] [options]'; exit 0;;
 esac
-OUTDOOR_NAV_OPTIONAL=0 source "$here/../ros_env.sh"
+source "$here/../ros_env.sh"
 case "$mode" in
  tasks) exec python3 "$here/scripts/run_execute_task.py" --serve-only "$@";;
  mqtt) exec python3 "$here/scripts/run_mqtt_stack.py" "$@";;

@@ -18,7 +18,9 @@
 
 ## 运行前准备
 
-先构建相邻 `outdoor_nav` 的消息、导航和任务包，至少包括 `msg_set_msgs`、`execute_task_server`、`multi_goal_to_gp_goal`、`multi_task_bridge`、`nav2_input_bridge`。脚本读取其安装空间，不修改导航项目。默认使用同级目录，可用 `OUTDOOR_NAV_WS` 指定位置；`HIL_INSTALL_DIR` 可指定导航安装空间。
+GPS/UAV 单目标、forward、velocity、yolo_detect 使用标准 ROS 消息；发送端只需 Humble 及对应标准消息包，不要求安装本地导航工作区。导航可运行在 NX，Docker 仅运行仿真和发送器。MQTT 发送器只需 Python Paho/yaml 和可连接的 broker。
+
+多航点和 task 发送器需本机能导入 `msg_set_msgs/MultiGoal` 和 `execute_task_server/ExecuteTask`；其自动补齐任务服务/队列的行为还需要对应可执行程序。完整任务/MQTT 接收栈由相邻 `outdoor_nav` 的 `msg_set_msgs`、`execute_task_server`、`multi_goal_to_gp_goal`、`multi_task_bridge` 等包提供，网关还需要其后端源码。脚本读取可用安装空间，不修改导航项目。默认使用同级目录，可用 `OUTDOOR_NAV_WS` 指定位置；`HIL_INSTALL_DIR` 可指定导航安装空间。自定义接口需在发送端当前架构的 Jammy/Humble 环境中编译，不能直接复制 NX 的 ARM64 install 到 x86 容器。
 
 默认命名空间为 `robot_1`。ROS_DOMAIN_ID、命名空间与共享 `simulation/config/nav.yaml` 的 GPS 原点应与导航一致。已有 ROS_DOMAIN_ID、RMW 和 DDS 配置会保留；项目未配置时默认域为 30。默认 ZNY 使用系统时间；旧 Classic 接法发送工具加 `--use-sim-time`，MQTT 启动加 `use_sim_time:=true`。
 
@@ -33,6 +35,21 @@ bash commands/send.sh task --dry-run
 ```
 
 确认 EKF ready=1、导航 active 和新鲜 TF 后再发送实际目标。通信排查见 [ROS CLI](../ROS_CLI.md)。
+
+### Docker 仿真、NX 导航、Docker 发送目标
+
+仿真电脑运行 `ROS_DOMAIN_ID=10 ./docker/run.sh`，容器内执行 `bash simulation/start.sh`。NX 在其已编译的 `outdoor_nav` 工作区运行 `ROS_DOMAIN_ID=10 bash deploy/nx/run.sh hil`。另开仿真电脑终端进入同域容器：
+
+```bash
+ROS_DOMAIN_ID=10 ./docker/run.sh
+# 以下在容器中执行；第一条只验证输入，第二条会实际下达目标
+bash commands/send.sh gp_goal --dry-run
+bash commands/send.sh gp_goal --file commands/examples/gps_goal.yaml
+```
+
+不需要把整个导航工作区装入发送容器。若要发送 `waypoints`/`task`，需另行准备上述自定义接口和所需任务程序，也可以在已配置任务环境的 NX 上运行发送器。
+
+域号相同还不够：两端需网络互通且允许 DDS UDP/发现流量、使用兼容的 RMW/DDS 配置、相同命名空间（默认 `robot_1`），并同步 GPS 原点及 ZNY 参数。Docker 使用 host network，默认 Fast DDS UDP 配置；NX 不应设置 `ROS_LOCALHOST_ONLY=1`。默认 ZNY 点云和导航 TF 使用系统时间，两台宿主机需用 NTP/chrony 同步时间，导航 `use_sim_time=false`。先验证实际点云/里程计接收和新鲜 TF，再发目标，不能仅凭 topic 列表确认通信。
 
 ## 发送入口与数据格式
 
@@ -198,6 +215,6 @@ python3 tests/integration/command_interfaces.py --domain-id 103 --output /tmp/co
 
 本次核查：30 个原文件全部检查，保留 26 个、移除 4 个；新增本 README 为交接入口。可选 MQTT 包构建、Shell/Python 检查、4 个 dry-run 入口及 8 份示例再生成比对通过。ROS 域 103 的五条正常链路和三项异常测试通过，未收到模拟 FCU 状态。结果见 [接口验证记录](../tests/results/commands_cleanup_interfaces.json)，逐文件理由见 [FILE_AUDIT.md](FILE_AUDIT.md)。
 
-公共环境已合并到项目根目录 `ros_env.sh`；send/start 会加载它并要求导航安装空间存在，直接 ROS CLI 先 `source ros_env.sh`。commands 不再单独维护 env.sh，也不包装导航启动。
+公共环境已合并到项目根目录 `ros_env.sh`；所有入口只加载可用 overlay，不强制要求本地导航安装目录。waypoints/task 会检查实际使用的自定义接口；start 按所选模式运行任务程序、网关或 broker，仍需对应程序和包可用。直接 ROS CLI 先 `source ros_env.sh`。commands 不再单独维护 env.sh，也不包装导航启动。
 
 接口回归输入在 /tmp 临时生成，不覆盖手改 examples；GPS 发布器等待实际 nav2_input_bridge 订阅完成匹配，避免只匹配到调试订阅时漏发。新版速度/停车及原有指令链路验证记录分别见 [手动控制](../tests/results/manual_commands.json) 和 [指令回归](../tests/results/commands_with_manual_regression.json)。
