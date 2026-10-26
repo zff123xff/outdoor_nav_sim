@@ -7,8 +7,17 @@ docker info >/dev/null || { echo 'Docker 不可用；请检查服务与当前用
 docker image inspect "$image" >/dev/null 2>&1 || {
     echo "找不到镜像 $image，请先运行 ./docker/build.sh。" >&2; exit 1;
 }
-image_uid="$(docker run --rm --entrypoint id "$image" -u)"
-image_gid="$(docker run --rm --entrypoint id "$image" -g)"
+# Rootless Podman normally maps the host user to container root, not USER ros.
+userns_args=()
+engine_version="$(docker --version)"
+if [[ "${engine_version,,}" == *podman* ]]; then
+    if [[ "$(docker info --format '{{.Host.Security.Rootless}}')" == true ]]; then
+        userns_args+=(--userns=keep-id)
+        echo '检测到 rootless Podman，使用 --userns=keep-id 保持挂载目录用户映射。' >&2
+    fi
+fi
+image_uid="$(docker run --rm "${userns_args[@]}" --entrypoint id "$image" -u)"
+image_gid="$(docker run --rm "${userns_args[@]}" --entrypoint id "$image" -g)"
 if [[ "$image_uid" != "$(id -u)" || "$image_gid" != "$(id -g)" || "$image_uid" == 0 ]]; then
     echo '镜像 UID/GID 与当前用户不一致，请使用当前普通用户重新运行 ./docker/build.sh。' >&2
     exit 1
@@ -20,8 +29,8 @@ fi
 args=(run --rm --init --network host --shm-size 1g --workdir /workspace
     --env "ROS_DOMAIN_ID=$domain" --env "RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION:-rmw_fastrtps_cpp}"
     --env "DOCKER_GAZEBO_MASTER_URI=${DOCKER_GAZEBO_MASTER_URI:-http://127.0.0.1:11346}"
-    --env QT_X11_NO_MITSHM=1
-    --mount "type=bind,source=$project_dir,target=/workspace")
+    --env QT_X11_NO_MITSHM=1 "${userns_args[@]}")
+workspace_mounts=(--mount "type=bind,source=$project_dir,target=/workspace")
 [[ -t 0 && -t 1 ]] && args+=(-it)
 
 # Nested bind mounts hide ALL previous native build artifacts without deleting them.
@@ -30,8 +39,25 @@ mkdir -p "$artifact_dir"
 artifact_dir="$(cd "$artifact_dir" && pwd)"
 for name in build install log; do
     mkdir -p "$artifact_dir/$name" "$project_dir/$name"
-    args+=(--mount "type=bind,source=$artifact_dir/$name,target=/workspace/$name")
+    workspace_mounts+=(--mount "type=bind,source=$artifact_dir/$name,target=/workspace/$name")
 done
+args+=("${workspace_mounts[@]}")
+# Check actual mounts as USER ros before opening a shell, including namespace
+# mapping, old root-owned artifacts and read-only filesystem failures.
+if ! docker run --rm "${userns_args[@]}" --network none --entrypoint /bin/bash \
+    "${workspace_mounts[@]}" "$image" -c '
+    for directory in /workspace/build /workspace/install /workspace/log; do
+        probe=$(mktemp -d "$directory/.container-write-check.XXXXXX") || {
+            id >&2
+            stat -c "%u:%g %a %n" "$directory" >&2
+            exit 1
+        }
+        rmdir -- "$probe" || exit 1
+    done'; then
+    echo "容器用户无法写入编译目录：$artifact_dir" >&2
+    echo '请检查目录归属、挂载是否只读及容器用户映射。' >&2
+    exit 1
+fi
 
 # Only explicit DDS settings are forwarded. Host paths must be in /workspace,
 # or use DOCKER_DDS_DIR for a read-only /dds mount and container paths in variables.
@@ -102,7 +128,7 @@ gpu=0
 if [[ "${DOCKER_GPU:-auto}" != 0 ]] && command -v nvidia-smi >/dev/null && nvidia-smi -L >/dev/null 2>&1; then
     # A real launch probe checks driver AND toolkit; Docker runtime names alone
     # do not prove --gpus works. No robot/ROS process is launched by this probe.
-    if timeout 20 docker run --rm --gpus all --env NVIDIA_DRIVER_CAPABILITIES=utility \
+    if timeout 20 docker run --rm "${userns_args[@]}" --gpus all --env NVIDIA_DRIVER_CAPABILITIES=utility \
         --entrypoint nvidia-smi "$image" -L >/dev/null 2>&1; then gpu=1; fi
 fi
 if (( gpu )); then

@@ -54,6 +54,8 @@ ROS_DOMAIN_ID=10 ./docker/run.sh
 
 为隔离旧机器产物，`/workspace/{build,install,log}` 分别映射到宿主机 `.docker-workspace/{build,install,log}`，首次为空，保留宿主机原来的同名目录。源码修改立即可见；编译输出属于当前 UID，退出容器后仍保留。可通过 `DOCKER_ARTIFACT_DIR=/absolute/path` 为另一镜像选择新的产物目录；更换 ROS/架构时应换目录或清理。
 
+若 `docker` 实际是 rootless Podman，`run.sh` 自动添加 `--userns=keep-id`。仅镜像内外数字 UID 相同还不够：Podman 默认把宿主机用户映射为容器 root，导致普通用户 `ros` 看见挂载目录属于 `0:0` 而无法写入。脚本在进入容器前会以实际用户和挂载配置测试 build/install/log 写入。出现 `PermissionError: log/build_...` 时，先在宿主机同步新版脚本，退出旧容器并重新执行 `./docker/run.sh`；无需重建镜像或更改目录权限。旧容器的用户映射不能通过 `source` 或 `docker exec` 改变。如果仍失败，检查宿主机 `.docker-workspace` 的实际归属和只读挂载，再针对该产物目录修复权限，不要对整个仓库执行 `chmod 777` 或递归改成容器的 subordinate UID。
+
 ### rosdep、重新编译与启动
 
 仓库不是根目录 `src/` 结构。镜像已初始化 rosdep 并根据 `simulation/src commands/src` 安装依赖；源码依赖变更后可在容器中重新执行：
