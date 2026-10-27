@@ -5,7 +5,7 @@ unset GAZEBO_MODEL_DATABASE_URI GAZEBO_MASTER_URI
 source /usr/share/gazebo/setup.sh || return 1
 # Host networking also shares TCP ports. Keep this stack off Classic's host
 # default 11345; all GUI clients/terminals use the same explicit container URI.
-export GAZEBO_MASTER_URI="${DOCKER_GAZEBO_MASTER_URI:-http://127.0.0.1:11346}"
+export GAZEBO_MASTER_URI="${DOCKER_GAZEBO_MASTER_URI:-http://127.0.0.1:11347}"
 source /opt/ros/humble/setup.bash || return 1
 if [[ -r /workspace/install/setup.bash ]]; then
     source /workspace/install/setup.bash || return 1

@@ -1,0 +1,3 @@
+# deps/ holds prebuilt install trees (twist_mux), not buildable sources.
+# Keep colcon package discovery out of it; ros_env.sh adds the twist_mux
+# prefix to AMENT_PREFIX_PATH directly.

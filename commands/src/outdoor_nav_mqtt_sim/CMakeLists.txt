@@ -13,14 +13,12 @@ find_package(std_msgs REQUIRED)
 find_package(jsoncpp REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(PahoMqttCpp REQUIRED)
-set(OUTDOOR_NAV_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/../../../../outdoor_nav" CACHE PATH "Read-only hardware workspace source")
-set(BACKEND "${OUTDOOR_NAV_SOURCE}/src/external_pkg/swarms_backend")
-if(NOT EXISTS "${BACKEND}/src/mqttnode/mqttnode.cpp")
-  message(FATAL_ERROR "Set OUTDOOR_NAV_SOURCE to the outdoor_nav source workspace")
-endif()
-# Compile the actual hardware MQTT implementation, without its serial/MAVLink launcher.
+# The hardware MQTT implementation is vendored under swarms_backend/, so this
+# package builds without any workspace outside this repository. Only the mqttnode
+# protocol sources are kept; its serial/MAVLink launcher is not part of this build.
+set(BACKEND "${CMAKE_CURRENT_SOURCE_DIR}/swarms_backend")
 add_executable(mqtt_gateway src/mqtt_gateway.cpp "${BACKEND}/src/mqttnode/mqttnode.cpp")
-target_include_directories(mqtt_gateway PRIVATE "${BACKEND}/include" "${BACKEND}/include/third_party")
+target_include_directories(mqtt_gateway PRIVATE "${BACKEND}/include")
 ament_target_dependencies(mqtt_gateway rclcpp ament_index_cpp msg_set_msgs mavros_msgs nav_msgs sensor_msgs geometry_msgs std_msgs)
 target_link_libraries(mqtt_gateway PahoMqttCpp::paho-mqttpp3 jsoncpp_lib yaml-cpp)
 install(TARGETS mqtt_gateway DESTINATION lib/${PROJECT_NAME})

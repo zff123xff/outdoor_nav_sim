@@ -13,5 +13,13 @@
 !simulation/src/third_party/champ/*/package.xml
 !commands/
 !commands/src/
+!commands/src/msg_set_msgs/
+!commands/src/msg_set_msgs/package.xml
+!commands/src/execute_task_server/
+!commands/src/execute_task_server/package.xml
+!commands/src/multi_goal_to_gp_goal/
+!commands/src/multi_goal_to_gp_goal/package.xml
+!commands/src/multi_task_bridge/
+!commands/src/multi_task_bridge/package.xml
 !commands/src/outdoor_nav_mqtt_sim/
 !commands/src/outdoor_nav_mqtt_sim/package.xml

@@ -22,6 +22,7 @@ outdoor_nav_sim/
 │   ├── examples/                 # 附近目标、任务输入与异常测试样例
 │   ├── scripts/                  # 指令发布与任务接入
 │   └── src/outdoor_nav_mqtt_sim/  # 复用原项目 MQTT 协议的薄网关
+├── docker/                       # 容器镜像与运行脚本，说明见 docker/README.md
 ├── ROS_CLI.md                    # 项目公共 ROS 通信排查
 ├── tests/                        # 集成测试与验证结果
 ├── build_sim.sh                  # 构建仿真主体并运行测试
@@ -30,7 +31,7 @@ outdoor_nav_sim/
 
 ## 启动
 
-Ubuntu 20.04 宿主机使用容器时，先按 [Docker 环境流程](simulation/README.md#dockerubuntu-2004-宿主机) 构建镜像、重新编译并启动。宿主机不需要安装 ROS 或 Gazebo。
+Ubuntu 20.04 宿主机使用容器时，先按 [Docker 环境说明](docker/README.md) 构建镜像、重新编译并启动。宿主机不需要安装 ROS 或 Gazebo。
 
 在本目录运行 `bash build_sim.sh` 构建仿真主体；导航端另需编译 outdoor_nav。MQTT 为可选功能，需要时运行 `bash commands/setup_mqtt.sh`。
 

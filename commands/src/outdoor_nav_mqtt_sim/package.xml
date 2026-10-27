@@ -7,6 +7,7 @@
   <depend>rclcpp</depend><depend>ament_index_cpp</depend><depend>msg_set_msgs</depend>
   <depend>mavros_msgs</depend><depend>nav_msgs</depend><depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend><depend>std_msgs</depend>
+  <depend>libjsoncpp-dev</depend><depend>yaml-cpp</depend><depend>libpaho-mqttpp-dev</depend>
   <exec_depend>multi_task_bridge</exec_depend><exec_depend>execute_task_server</exec_depend>
   <exec_depend>multi_goal_to_gp_goal</exec_depend><exec_depend>launch_ros</exec_depend>
   <exec_depend>python3-yaml</exec_depend><exec_depend>rclpy</exec_depend>

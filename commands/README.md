@@ -13,6 +13,7 @@
 | config/mqtt/ | 日常联调和隔离接口测试两组 broker/client 配置 |
 | examples/ | 附近目标、任务输入、异常输入和原点对照信息 |
 | src/outdoor_nav_mqtt_sim/ | 复用实际指控协议的薄网关 ROS 包，不包含导航算法 |
+| src/msg_set_msgs/、src/execute_task_server/、src/multi_goal_to_gp_goal/、src/multi_task_bridge/ | 任务/消息接口包，网关与发送器共用 |
 
 详细图见 [指令接入到运动执行链路](../simulation/README.md#指令接入到运动执行的详细链路)。
 
@@ -20,7 +21,7 @@
 
 GPS/UAV 单目标、forward、velocity、yolo_detect 使用标准 ROS 消息；发送端只需 Humble 及对应标准消息包，不要求安装本地导航工作区。导航可运行在 NX，Docker 仅运行仿真和发送器。MQTT 发送器只需 Python Paho/yaml 和可连接的 broker。
 
-多航点和 task 发送器需本机能导入 `msg_set_msgs/MultiGoal` 和 `execute_task_server/ExecuteTask`；其自动补齐任务服务/队列的行为还需要对应可执行程序。完整任务/MQTT 接收栈由相邻 `outdoor_nav` 的 `msg_set_msgs`、`execute_task_server`、`multi_goal_to_gp_goal`、`multi_task_bridge` 等包提供，网关还需要其后端源码。脚本读取可用安装空间，不修改导航项目。默认使用同级目录，可用 `OUTDOOR_NAV_WS` 指定位置；`HIL_INSTALL_DIR` 可指定导航安装空间。自定义接口需在发送端当前架构的 Jammy/Humble 环境中编译，不能直接复制 NX 的 ARM64 install 到 x86 容器。
+多航点和 task 发送器需本机能导入 `msg_set_msgs/MultiGoal` 和 `execute_task_server/ExecuteTask`；其自动补齐任务服务/队列的行为还需要对应可执行程序。完整任务/MQTT 接收栈已收进本仓库 `commands/src`：`msg_set_msgs`、`execute_task_server`、`multi_goal_to_gp_goal`、`multi_task_bridge` 与网关包 `outdoor_nav_mqtt_sim`，网关所需的 MQTT 后端源码内联在 `outdoor_nav_mqtt_sim/swarms_backend/`。构建不再需要相邻 `outdoor_nav` 源码或安装空间。导航侧仍按同级目录读取，可用 `OUTDOOR_NAV_WS` 指定位置；`HIL_INSTALL_DIR` 可指定导航安装空间。自定义接口需在发送端当前架构的 Jammy/Humble 环境中编译，不能直接复制 NX 的 ARM64 install 到 x86 容器。
 
 默认命名空间为 `robot_1`。ROS_DOMAIN_ID、命名空间与共享 `simulation/config/nav.yaml` 的 GPS 原点应与导航一致。已有 ROS_DOMAIN_ID、RMW 和 DDS 配置会保留；项目未配置时默认域为 30。默认 ZNY 使用系统时间；旧 Classic 接法发送工具加 `--use-sim-time`，MQTT 启动加 `use_sim_time:=true`。
 
@@ -38,7 +39,7 @@ bash commands/send.sh task --dry-run
 
 ### Docker 仿真、NX 导航、Docker 发送目标
 
-仿真电脑运行 `ROS_DOMAIN_ID=10 ./docker/run.sh`，容器内执行 `bash simulation/start.sh`。NX 在其已编译的 `outdoor_nav` 工作区运行 `ROS_DOMAIN_ID=10 bash deploy/nx/run.sh hil`。另开仿真电脑终端进入同域容器：
+容器的构建、进入和联调见 [Docker 环境说明](../docker/README.md)。发送目标只需另开一个同域终端：
 
 ```bash
 ROS_DOMAIN_ID=10 ./docker/run.sh
@@ -47,9 +48,9 @@ bash commands/send.sh gp_goal --dry-run
 bash commands/send.sh gp_goal --file commands/examples/gps_goal.yaml
 ```
 
-不需要把整个导航工作区装入发送容器。若要发送 `waypoints`/`task`，需另行准备上述自定义接口和所需任务程序，也可以在已配置任务环境的 NX 上运行发送器。
+不需要把整个导航工作区装入发送容器。若要发送 `waypoints`/`task`，需本仓库 `commands/src` 的自定义接口和任务程序，也可以在已配置任务环境的 NX 上运行发送器。
 
-域号相同还不够：两端需网络互通且允许 DDS UDP/发现流量、使用兼容的 RMW/DDS 配置、相同命名空间（默认 `robot_1`），并同步 GPS 原点及 ZNY 参数。Docker 使用 host network，默认 Fast DDS UDP 配置；NX 不应设置 `ROS_LOCALHOST_ONLY=1`。默认 ZNY 点云和导航 TF 使用系统时间，两台宿主机需用 NTP/chrony 同步时间，导航 `use_sim_time=false`。先验证实际点云/里程计接收和新鲜 TF，再发目标，不能仅凭 topic 列表确认通信。
+域号相同还不够：两端需网络互通且允许 DDS UDP/发现流量、使用兼容的 RMW/DDS 配置、相同命名空间（默认 `robot_1`），并同步 GPS 原点及 ZNY 参数。NX 不应设置 `ROS_LOCALHOST_ONLY=1`。默认 ZNY 点云和导航 TF 使用系统时间，两台宿主机需用 NTP/chrony 同步时间，导航 `use_sim_time=false`。先验证实际点云/里程计接收和新鲜 TF，再发目标，不能仅凭 topic 列表确认通信。
 
 ## 发送入口与数据格式
 
@@ -157,7 +158,7 @@ bash commands/start.sh mqtt
 bash commands/send.sh mqtt --file commands/examples/mqtt_task_stream.json
 ```
 
-x86_64 安装脚本下载并解包 Paho、Mosquitto 和 Python 依赖至 `deps/mqtt`，不安装系统服务。ARM64 使用原生系统依赖，该脚本不安装 ARM 系统库。网关构建需要相邻导航项目的 MQTT 后端源码，以及其已安装的消息/任务模块；Python 侧使用 paho-mqtt、pymap3d、shapely，C++ 侧使用 Paho、jsoncpp、yaml-cpp 等依赖。
+x86_64 安装脚本下载并解包 Paho、Mosquitto 和 Python 依赖至 `deps/mqtt`，不安装系统服务。ARM64 使用原生系统依赖，该脚本不安装 ARM 系统库。网关构建使用仓库内 `commands/src` 的任务/消息包与内联后端源码；Python 侧使用 paho-mqtt、pymap3d、shapely，C++ 侧使用 Paho、jsoncpp、yaml-cpp 等依赖。
 
 `start.sh mqtt` 对默认 `127.0.0.1:1883` 自动启动或复用 broker；外部地址由配置指定，不启动本地 broker。可单独用 `start.sh broker` 或 `start.sh mqtt-gateway`。MQTT 栈默认同时启动 ExecuteTask 服务和队列；已有 `start.sh tasks` 时应加 `start_pipeline:=false`，避免重复节点。
 

@@ -1,0 +1,3 @@
+float32 velocity
+float32 waypoint_radius
+float32 height

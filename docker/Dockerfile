@@ -32,6 +32,10 @@ COPY simulation/src/sim_localization/package.xml /tmp/project-deps/simulation/sr
 COPY simulation/src/third_party/champ/champ/package.xml /tmp/project-deps/simulation/src/third_party/champ/champ/package.xml
 COPY simulation/src/third_party/champ/champ_base/package.xml /tmp/project-deps/simulation/src/third_party/champ/champ_base/package.xml
 COPY simulation/src/third_party/champ/champ_msgs/package.xml /tmp/project-deps/simulation/src/third_party/champ/champ_msgs/package.xml
+COPY commands/src/msg_set_msgs/package.xml /tmp/project-deps/commands/src/msg_set_msgs/package.xml
+COPY commands/src/execute_task_server/package.xml /tmp/project-deps/commands/src/execute_task_server/package.xml
+COPY commands/src/multi_goal_to_gp_goal/package.xml /tmp/project-deps/commands/src/multi_goal_to_gp_goal/package.xml
+COPY commands/src/multi_task_bridge/package.xml /tmp/project-deps/commands/src/multi_task_bridge/package.xml
 COPY commands/src/outdoor_nav_mqtt_sim/package.xml /tmp/project-deps/commands/src/outdoor_nav_mqtt_sim/package.xml
 COPY docker/rosdep-skip-keys.txt /usr/local/share/outdoor-nav/rosdep-skip-keys.txt
 
@@ -44,6 +48,7 @@ RUN test "$USER_UID" -gt 0 && test "$USER_GID" -gt 0 \
     && if [ ! -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then rosdep init; fi
 
 USER ros
+ENV ROSDISTRO_INDEX_URL=https://mirrors.bfsu.edu.cn/rosdistro/index-v4.yaml
 RUN rosdep update --rosdistro humble \
     && sudo apt-get update \
     && rosdep install --from-paths /tmp/project-deps/simulation/src /tmp/project-deps/commands/src \

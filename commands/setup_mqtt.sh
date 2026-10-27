@@ -16,12 +16,14 @@ else
   echo "ARM64 uses native system Paho/MQTT/Python dependencies; no x86 libraries will be loaded."
 fi
 source "$sim_dir/ros_env.sh"
-nav_ws="${OUTDOOR_NAV_WS:-$(dirname "$sim_dir")/outdoor_nav}"
+cd "$sim_dir"
+# The task/message packages and the MQTT gateway live under commands/src, so this
+# repository builds the whole MQTT stack without any workspace next to it.
+CMAKE_BUILD_PARALLEL_LEVEL=2 colcon build --base-paths simulation/src commands/src \
+  --packages-select msg_set_msgs execute_task_server multi_goal_to_gp_goal multi_task_bridge outdoor_nav_mqtt_sim \
+  --executor sequential --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
+source "$sim_dir/ros_env.sh"
 python3 -c 'from msg_set_msgs.msg import MultiTask; from execute_task_server.srv import ExecuteTask; import multi_task_bridge.node' || {
-  echo 'Build outdoor_nav task/message packages first; this installer does not modify that workspace.' >&2
+  echo 'The MQTT stack build did not provide the task and message modules.' >&2
   exit 1
 }
-cd "$sim_dir"
-CMAKE_BUILD_PARALLEL_LEVEL=2 colcon build --base-paths simulation/src commands/src --packages-select outdoor_nav_mqtt_sim \
-  --executor sequential --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release \
-  -DOUTDOOR_NAV_SOURCE="$nav_ws" -DBUILD_TESTING=OFF
